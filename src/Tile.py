@@ -24,11 +24,19 @@ class Tile:
         """Flood Stub"""
         pass
 
+    def out(self) -> str:
+        """print stub for demo"""
+        pass
+
 class River(Tile):
     """
     River Child Class
     Rivers don't do anything in the NetLogo implementation so currently a stub for the map to use
     """
+
+    def out(self) -> str:
+        """Print for demo"""
+        return 'R'
 
 
 class Settlement(Tile):
@@ -57,6 +65,10 @@ class Settlement(Tile):
     def flood(self):
         """Does nothing for now"""
         pass
+
+    def out(self) -> str:
+        """Print for demo"""
+        return 'S'
 
 class Field(Tile):
     """
@@ -109,3 +121,10 @@ class Field(Tile):
         self.__fertility = 17 * ( beta * (math.exp(0 - (self.__x - mu) ** 2 /  alpha)))
         self.__avf = ((ticks * self.__avf) + self.__fertility)/(ticks + 1)
         self.__harvested = False
+
+    def out(self) -> str:
+        """Print for demo"""
+        if(self.__harvested == False):
+            return 'F'
+        else:
+            return 'H'

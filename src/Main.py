@@ -1,4 +1,4 @@
-from src import Map
+import Map
 
 map = Map.Map()
 map.setup()
