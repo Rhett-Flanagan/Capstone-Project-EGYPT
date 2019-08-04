@@ -14,6 +14,7 @@ class Household:
     __fieldsOwned = 0  # Number of fields owned by the household
     __fieldsHarvested = 0  # Number of fields harvested by the household
     __fissionChance = 0.3  # How likely a household is to split apart
+    __genVariance = 0.9   #The change of variables between generations
     #__map  = Map()   # A map variable to connect the household to the greater simulation
 
 
@@ -100,14 +101,95 @@ class Household:
 
 
     def rent(self):
-
-
-    def consumeGrain(self):
         
 
 
+    def consumeGrain(self):
+        Household.__grain -= Household.__workers*160
+        if (Household.__grain <= 0):
+            Household.__grain = 0
+            Household.__workers -= 1
+            #Settlement.__pop -= 1
+            #totalPop -= 1
+
+            if Household.__workers <= 0:
+                for i in range(length(Household.__fieldLocs)):
+                   # __owned = False   unsure of iteraction between classes
 
 
+    def storageLoss(self):
+        Household.__grain = Household.__grain - (Household.__grain*0.1)
+    
+
+    def fieldChangeover(self):
+        toDel = []
+        for i in range(length(Household.__fieldLocs)):
+            if (__harvested == True):
+                __yearsFallow = 0
+            else:
+                __yearsFallow += 1
+            
+            if (__yearsFallow >= fallowLimit):   #unsure of where fallowLimit is
+                __owned = False
+                __field = False
+                Household.__fieldsOwned -= 1
+                toDel.append(i)
+
+        for i in range(length(toDel):
+            del Household.__fieldLocs[toDel[i]]
+
+    
+    def genChangeover(self):
+        Household.__genCountdown -= 1
+
+        if Household.__genCountdown <= 0:
+            Household.__genCountdown = random.randint(5) + 10 
+
+            ambitionChange = random.uniform(0, Household.__genVariance)
+            decreaseChance = random.random()
+
+            if (decreaseChance < 0.5):
+                ambitionChange *= -1
+            
+            newAmbition = Household.__ambition + ambitionChange
+
+            while(newAmbition > 1 or newAmbition < minAmbition):   ## not sure where minambition is being stored.
+                 ambitionChange = random.uniform(0, Household.__genVariance)
+                 decreaseChance = random.random()
+
+                if (decreaseChance < 0.5):
+                    ambitionChange *= -1
+            
+                 newAmbition = Household.__ambition + ambitionChange
+            
+            Household.__ambition = newAmbition
+
+
+
+            competencyChange = random.uniform(0, Household.__genVariance)
+            decreaseChance = random.random()
+
+            if (decreaseChance < 0.5):
+                competencyChange *= -1
+            
+            newComp = Household.__competency + competencyChange
+
+            while(newComp > 1 or newComp < minComp):   ## not sure where minambition is being stored.
+                competencyChange = random.uniform(0, Household.__genVariance)
+                decreaseChance = random.random()
+
+                if (decreaseChance < 0.5):
+                    competencyChange *= -1
+            
+                newComp = Household.__competency + competencyChange
+            
+            Household.__competency = newComp
+
+    #def fission(self):
+
+
+
+            
             
 
 
