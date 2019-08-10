@@ -186,6 +186,7 @@ class Household(Agent):
         #total
 
     def rent(self):
+        
         # TODO
         pass
     
