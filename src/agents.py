@@ -87,6 +87,9 @@ class Field(Tile):
         self.fertility = 17 * ( beta * (math.exp(0 - (self.pos[0] - mu) ** 2 /  alpha)))
         self.avf = ((ticks * self.avf) + self.fertility)/(ticks + 1)
         self.harvested = False
+
+    def step(self):
+        self.flood()
     
     
 
@@ -112,6 +115,15 @@ class Settlement(Tile):
         super().__init__(unique_id, model, pos)
         self.population = population
         self.noHouseholds = noHouseholds
+
+    def fission(self):
+        # TODO
+        pass
+
+    def step(self):
+        self.fission()
+
+
 
 class Household(Agent):
     """
@@ -159,12 +171,12 @@ class Household(Agent):
         The decision to claim is a function the productivity of the field compared to existing fields and ambition.
         """
         chance = np.random.uniform(0, 1)
-        if (chance > self.ambition and self.workers > self.ieldsOwned) or (self.fieldsOwned <= 1):
+        if (chance > self.ambition and self.workers > self.fieldsOwned) or (self.fieldsOwned <= 1):
             bestFertility = 0
             bestField = None
 
             # Iterate through fields on the grid
-            neighbours = self.model.grid.get_neighbours(self.pos, False, False, self.model.knowledgeRadius)
+            neighbours = self.model.grid.get_neighbors(self.pos, False, self.model.knowledgeRadius)
             for a in neighbours:
                 if (a.fertility > bestFertility and type(a).__name__ == "Field" 
                     and a.owned == False and a.settlement_territory == False):
@@ -183,15 +195,57 @@ class Household(Agent):
                     self.fields.append(bestField)
     
     def farm(self):
-        #total
+        totalHarvest = 0
+        maxYield = 2475
+        self.workersWorked = 0
+        self.fieldsHarvested = 0
+
+        for i in range(self.workers // 2):
+            # Determine best field
+            bestHarvest = 0
+            bestField = None
+            for f in self.fields:
+                if not f.harvested:
+                    harvest  = ((f.fertility * maxYield * self.competency) - (((abs(self.pos[0]) - f.pos[0]) + abs(self.pos[1] - f.pos[1])) * self.model.distanceCost))
+                    if harvest > bestHarvest:
+                        bestHarvest = harvest
+                        bestField = f
+            # Farm best field
+            chance = np.random.uniform(0,1)
+            if ((self.grain > (self.workers * 160)) or (chance < self.ambition * self.competency)) and (bestField is not None):
+                bestField.harvested = True
+                totalHarvest += bestHarvest - 300 # -300 for planting
+                self.workersWorked += 2
+        # Complete farming    
+        self.grain += totalHarvest
+        self.model.totalGrain += totalHarvest
+
 
     def rent(self):
-        
         # TODO
         pass
     
     def consumeGrain(self):
+        # TODO
         pass
 
-    
+    def storageLoss(self):
+        # TODO
+        pass
 
+    def populationShif(self):
+        # TODO
+        pass
+
+    def genChangeover(self):
+        # TODO
+        pass
+
+    def fieldChangeover(self):
+        # TODO
+        pass
+
+    def step(self):
+        self.claimFields()
+        self.farm()
+        pass

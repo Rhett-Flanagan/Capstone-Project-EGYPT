@@ -36,6 +36,7 @@ class EgyptSim(Model):
     fissionChance = 0.7
     rental = False
     rentalRate = 0.5
+    totalGrain = 0
 
     # Step variables
     mu = 0
@@ -103,17 +104,25 @@ class EgyptSim(Model):
         self.fissionChance = fissionChance
         self.rental = rental
         self.rentalRate = rentalRate
+        self.totalGrain = startingGrain * startingHouseholds * startingSettlements
 
         self.schedule = RandomActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus = False)
         # TODO Setup full data collection
-        self.datacollector = DataCollector(
-            {"Households": lambda m: m.schedule.get_breed_count(Household),
-             "Settlements": lambda m: m.schedule.get_breed_count(Settlement),
-            })
+        # self.datacollector = DataCollector(
+        #     {"Households": lambda m: m.schedule.get_breed_count(Household),
+        #      "Settlements": lambda m: m.schedule.get_breed_count(Settlement),
+        #     })
+
+        self.datacollector = DataCollector(model_reporters = {"Total Grain" : lambda m: m.totalGrain})
 
         self.setup()
+        self.running = True
+        self.datacollector.collect(self)
     
+    # def getTotalGrain(self):
+    #     return self.totalGrain
+
     def setupMapBase(self):
         """
         Create the grid as field and river
@@ -161,7 +170,7 @@ class EgyptSim(Model):
             for a in local:
                 #if type(a).__name__ != "Household":
                 a.settlmentTeritory = True
-            #self.schedule.add(settlement)
+            self.schedule.add(settlement)
 
             # Add households for the settlement to the scheduler
             for j in range(self.startingHouseholds):
@@ -185,6 +194,8 @@ class EgyptSim(Model):
     def step(self):
         self.currentTime += 1
         self.setupFlood()
+        self.schedule.step()
+        self.datacollector.collect(self)
     
     def setupFlood(self):
         """
