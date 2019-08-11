@@ -29,10 +29,11 @@ def portrayal(agent):
         portrayal["h"] = 1
         portrayal["Color"] = "Blue"
     elif type(agent) is Settlement:
-        portrayal["Shape"] = "rect"
+        portrayal["Shape"] = "circle"
         portrayal["Filled"] = "true"
         portrayal["Layer"] = 1
         portrayal["r"] = 0.2
+    return portrayal
 
 grid = CanvasGrid(portrayal, 30, 30, 600, 600)
 chart = ChartModule([{"Label" : "Total Grain", "Color" : "Black"}], data_collector_name = "datacollector")
