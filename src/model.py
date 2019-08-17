@@ -37,6 +37,7 @@ class EgyptSim(Model):
     rental = False
     rentalRate = 0.5
     totalGrain = 0
+    totalPopulation = 0
 
     # Step variables
     mu = 0
@@ -105,6 +106,7 @@ class EgyptSim(Model):
         self.rental = rental
         self.rentalRate = rentalRate
         self.totalGrain = startingGrain * startingHouseholds * startingSettlements
+        self.totalPopulation = startingSettlements * startingHouseholds * startingHouseholdSize
 
         self.schedule = RandomActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus = False)
@@ -142,7 +144,6 @@ class EgyptSim(Model):
         """
         Add settlements and households to the simulation
         """
-        taken = []
         for i in range(self.startingSettlements):
             # Loop untill a suitable location is found
             while True:
@@ -151,27 +152,16 @@ class EgyptSim(Model):
 
                 flag = False
                 cell = self.grid.get_cell_list_contents((x,y))
+                # Check that tile is available
                 for agent in cell:
-                    if agent.settlementTeritory:
+                    if agent.settlementTerritory:
                         break
                     else:
                         flag = True
                         break
 
                 if flag:
-                    # taken.append((x, y))
                     break
-
-                # Check if there is a sellment at the location
-                # flag = True
-                # for loc in taken:
-                #     if loc == (x, y):
-                #         flag = False
-                #         break
-                # # If there is no settlement, proceed, otherwise relocate coordinates
-                # if flag:
-                #     taken.append((x, y))
-                #     break
 
             # Add settlement to the grid
             population = self.startingHouseholds * self.startingHouseholdSize
@@ -181,8 +171,8 @@ class EgyptSim(Model):
             # Set the surrounding fields as territory
             local = self.grid.get_neighbors((x,y), moore = True, include_center = True, radius = 1)
             for a in local:
-                a.settlementTeritory = True
-                # print(type(a), a.pos, a.settlementTeritory, sep = "\t")
+                a.settlementTerritory = True
+                # print(type(a), a.pos, a.settlementTerritory, sep = "\t")
             self.schedule.add(settlement)
 
             # Add households for the settlement to the scheduler
@@ -194,7 +184,6 @@ class EgyptSim(Model):
                                       self.startingHouseholdSize, ambition, competency,
                                       genCount)
                 #! Dont add household to grid, that is redundant
-                #self.grid.place_agent(household, (x, y))
                 self.schedule.add(household)
 
     def setup(self):

@@ -17,7 +17,7 @@ def portrayal(agent):
         portrayal["Layer"] = 0
         portrayal["w"] = 1
         portrayal["h"] = 1
-        if agent.settlementTeritory:
+        if agent.settlementTerritory:
             portrayal["Color"] = ["Purple"]
         elif agent.owned:
             portrayal["Color"] = ["#00FF00", "#00CC00", "#009900"]
