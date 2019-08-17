@@ -17,7 +17,9 @@ def portrayal(agent):
         portrayal["Layer"] = 0
         portrayal["w"] = 1
         portrayal["h"] = 1
-        if agent.owned:
+        if agent.settlementTeritory:
+            portrayal["Color"] = ["Purple"]
+        elif agent.owned:
             portrayal["Color"] = ["#00FF00", "#00CC00", "#009900"]
         else:
             portrayal["Color"] = ["#84e184", "#adebad", "#d6f5d6"]
@@ -29,10 +31,11 @@ def portrayal(agent):
         portrayal["h"] = 1
         portrayal["Color"] = "Blue"
     elif type(agent) is Settlement:
-        portrayal["Shape"] = "circle"
+        portrayal["Shape"] = "src/res/settlement.png"
+        # portrayal["Color"] = "Black"
         portrayal["Filled"] = "true"
         portrayal["Layer"] = 1
-        portrayal["r"] = 0.2
+        # portrayal["scale"] = 1
     return portrayal
 
 grid = CanvasGrid(portrayal, 30, 30, 600, 600)

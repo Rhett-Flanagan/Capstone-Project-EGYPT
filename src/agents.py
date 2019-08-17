@@ -17,7 +17,7 @@ class Tile(Agent):
     # Variable declarations for non python programmer sanity
     pos = (0,0)
     fertility = 0.0
-    settlement_territory = False
+    settlementTeritory = False
     owned = False
     color = None
 
@@ -179,7 +179,7 @@ class Household(Agent):
             neighbours = self.model.grid.get_neighbors(self.pos, False, self.model.knowledgeRadius)
             for a in neighbours:
                 if (a.fertility > bestFertility and type(a).__name__ == "Field" 
-                    and a.owned == False and a.settlement_territory == False):
+                    and a.owned == False and a.settlementTeritory == False):
                     bestFertility = a.fertility
                     bestField = a
             
@@ -187,7 +187,7 @@ class Household(Agent):
             if bestField != None:
                 # Redundancy checks
                 if(type(bestField).__name__ == "Field" and bestField.owned == False 
-                    and bestField.settlement_territory == False):
+                    and bestField.settlementTeritory == False):
                     bestField.owned = True
                     bestField.harvested = False
                     bestField.yearsFallow = 0

@@ -149,16 +149,29 @@ class EgyptSim(Model):
                 x = self.random.randrange(1, self.width)
                 y = self.random.randrange(self.height)
 
-                # Check if there is a sellment at the location
-                flag = True
-                for loc in taken:
-                    if loc == (x, y):
-                        flag = False
+                flag = False
+                cell = self.grid.get_cell_list_contents((x,y))
+                for agent in cell:
+                    if agent.settlementTeritory:
                         break
-                # If there is no settlement, proceed, otherwise relocate coordinates
+                    else:
+                        flag = True
+                        break
+
                 if flag:
-                    taken.append((x, y))
+                    # taken.append((x, y))
                     break
+
+                # Check if there is a sellment at the location
+                # flag = True
+                # for loc in taken:
+                #     if loc == (x, y):
+                #         flag = False
+                #         break
+                # # If there is no settlement, proceed, otherwise relocate coordinates
+                # if flag:
+                #     taken.append((x, y))
+                #     break
 
             # Add settlement to the grid
             population = self.startingHouseholds * self.startingHouseholdSize
@@ -166,10 +179,10 @@ class EgyptSim(Model):
             self.grid.place_agent(settlement, (x, y))
 
             # Set the surrounding fields as territory
-            local = self.grid.get_neighbors((x, y), True, True, 1)
+            local = self.grid.get_neighbors((x,y), moore = True, include_center = True, radius = 1)
             for a in local:
-                #if type(a).__name__ != "Household":
-                a.settlmentTeritory = True
+                a.settlementTeritory = True
+                # print(type(a), a.pos, a.settlementTeritory, sep = "\t")
             self.schedule.add(settlement)
 
             # Add households for the settlement to the scheduler
@@ -180,7 +193,7 @@ class EgyptSim(Model):
                 household = Household(self.next_id(), self, (x, y), self.startingGrain,
                                       self.startingHouseholdSize, ambition, competency,
                                       genCount)
-                #! Dont add household grid
+                #! Dont add household to grid, that is redundant
                 #self.grid.place_agent(household, (x, y))
                 self.schedule.add(household)
 
@@ -188,8 +201,9 @@ class EgyptSim(Model):
         """
         Setup model parameters
         """
-        self.setupSettlementsHouseholds()  
         self.setupMapBase()
+        self.setupSettlementsHouseholds()  
+        
 
     def step(self):
         self.currentTime += 1

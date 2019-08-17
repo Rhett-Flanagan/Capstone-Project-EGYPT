@@ -11,7 +11,7 @@ The model active agent in the model is a Household, which has a number of worker
 To install the dependencies use pip and the requirements.txt in this directory. e.g.
 
 ```
-    $ pip install requirements.txt
+    $ pip install -r requirements.txt
 ```
 
 ## Running the Model
