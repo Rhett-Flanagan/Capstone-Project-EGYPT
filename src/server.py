@@ -1,9 +1,9 @@
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import CanvasGrid, ChartModule
-from mesa.visualization.UserParam import UserSettableParameter
 
-from src.agents import River, Field, Settlement, Household
+from src.agents import River, Field, Settlement
 from src.model import EgyptSim
+
 
 def portrayal(agent):
     if agent is None:
@@ -38,10 +38,11 @@ def portrayal(agent):
         # portrayal["scale"] = 1
     return portrayal
 
-grid = CanvasGrid(portrayal, 30, 30, 600, 600)
-chart = ChartModule([{"Label" : "Total Grain", "Color" : "Black"}], data_collector_name = "datacollector")
 
-server = ModularServer(EgyptSim, [grid, chart], "Egypt Sim", {"height" : 30, "width" : 30})
+grid = CanvasGrid(portrayal, 30, 30, 600, 600)
+chart = ChartModule([{"Label": "Total Grain", "Color": "Black"}], data_collector_name="datacollector")
+
+server = ModularServer(EgyptSim, [grid, chart], "Egypt Sim", {"height": 30, "width": 30})
 
 server.port = 8521
-#server.launch()
+# server.launch()

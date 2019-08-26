@@ -1,6 +1,8 @@
-from mesa import Agent
-import numpy as np
 import math
+
+import numpy as np
+from mesa import Agent
+
 
 # Class to setup the agents for the model:
 # Tile: A psudeo agent used primarily as a container for data, can be a river, settlement or field
@@ -15,7 +17,7 @@ class Tile(Agent):
     """
 
     # Variable declarations for non python programmer sanity
-    pos = (0,0)
+    pos = (0, 0)
     fertility = 0.0
     settlementTerritory = False
     owned = False
@@ -31,14 +33,16 @@ class Tile(Agent):
         '''
         super().__init__(unique_id, model)
         self.pos = pos
-    
+
     def step(self):
         pass
+
 
 class River(Tile):
     """
     River agent, currently does nothing and is used only as an identifier
-    """ 
+    """
+
     def __init__(self, unique_id, model, pos: tuple):
         '''
         Create a new River
@@ -60,7 +64,7 @@ class Field(Tile):
     avf = 0.0
     yearsFallow = 0
 
-    def __init__(self, unique_id: int, model, pos: tuple = (0,0), fertility: float = 0.0):
+    def __init__(self, unique_id: int, model, pos: tuple = (0, 0), fertility: float = 0.0):
         '''
         Create a new Field
 
@@ -73,25 +77,24 @@ class Field(Tile):
         self.fertility = fertility
         self.avf = fertility
         self.yearsFallow = 0
-    
+
     def flood(self):
         """
         Changes the fertility value simulating annual flood
         """
         mu = self.model.mu
-        #sigma = self.model.sigma
+        # sigma = self.model.sigma
         alpha = self.model.alpha
         beta = self.model.beta
         ticks = self.model.currentTime
 
-        self.fertility = 17 * ( beta * (math.exp(0 - (self.pos[0] - mu) ** 2 /  alpha)))
-        self.avf = ((ticks * self.avf) + self.fertility)/(ticks + 1)
+        self.fertility = 17 * (beta * (math.exp(0 - (self.pos[0] - mu) ** 2 / alpha)))
+        self.avf = ((ticks * self.avf) + self.fertility) / (ticks + 1)
         self.harvested = False
 
     def step(self):
         self.flood()
-    
-    
+
 
 class Settlement(Tile):
     """
@@ -124,7 +127,6 @@ class Settlement(Tile):
         self.fission()
 
 
-
 class Household(Agent):
     """
     Household agent, the active agent in the simulation, contains information relevant to descision making and metrics
@@ -132,6 +134,7 @@ class Household(Agent):
 
     # Variable declarations for non python programmer sanity
     pos = (0, 0)
+    settlement = None
     grain = 0
     workers = 0
     ambition = 0.0
@@ -142,20 +145,22 @@ class Household(Agent):
     fieldsHarvested = 0
     fields = []
 
-    def __init__(self, unique_id: int, model, pos: tuple, grain: int,
-                 workers: int, ambition: float, competency: float, 
+    def __init__(self, unique_id: int, model, settlement: Settlement, pos: tuple, grain: int,
+                 workers: int, ambition: float, competency: float,
                  generationCountdown: int):
         '''
         Create a new Settlement
 
         Args:
             pos: Tuple representing the position of the agent on a grid
+            settlement: The settlment in which the household resides
             model: The model in which the agent is being used
             grain: The grain that the settlement has
             workers: The number of workers in the Household
         '''
         super().__init__(unique_id, model)
         self.pos = pos
+        self.settlement = settlement
         self.grain = grain
         self.workers = workers
         self.ambition = ambition
@@ -178,22 +183,22 @@ class Household(Agent):
             # Iterate through fields on the grid
             neighbours = self.model.grid.get_neighbors(self.pos, False, self.model.knowledgeRadius)
             for a in neighbours:
-                if (a.fertility > bestFertility and type(a).__name__ == "Field" 
-                    and a.owned == False and a.settlementTerritory == False):
+                if (a.fertility > bestFertility and type(a).__name__ == "Field"
+                        and a.owned == False and a.settlementTerritory == False):
                     bestFertility = a.fertility
                     bestField = a
-            
+
             # Make claim
             if bestField != None:
                 # Redundancy checks
-                if(type(bestField).__name__ == "Field" and bestField.owned == False 
-                    and bestField.settlementTerritory == False):
+                if (type(bestField).__name__ == "Field" and bestField.owned == False
+                        and bestField.settlementTerritory == False):
                     bestField.owned = True
                     bestField.harvested = False
                     bestField.yearsFallow = 0
                     self.fieldsOwned += 1
                     self.fields.append(bestField)
-    
+
     def farm(self):
         totalHarvest = 0
         maxYield = 2475
@@ -206,25 +211,26 @@ class Household(Agent):
             bestField = None
             for f in self.fields:
                 if not f.harvested:
-                    harvest  = ((f.fertility * maxYield * self.competency) - (((abs(self.pos[0]) - f.pos[0]) + abs(self.pos[1] - f.pos[1])) * self.model.distanceCost))
+                    harvest = ((f.fertility * maxYield * self.competency) - (((abs(self.pos[0]) - f.pos[0]) + abs(
+                        self.pos[1] - f.pos[1])) * self.model.distanceCost))
                     if harvest > bestHarvest:
                         bestHarvest = harvest
                         bestField = f
             # Farm best field
-            chance = np.random.uniform(0,1)
-            if ((self.grain > (self.workers * 160)) or (chance < self.ambition * self.competency)) and (bestField is not None):
+            chance = np.random.uniform(0, 1)
+            if ((self.grain > (self.workers * 160)) or (chance < self.ambition * self.competency)) and (
+                    bestField is not None):
                 bestField.harvested = True
-                totalHarvest += bestHarvest - 300 # -300 for planting
+                totalHarvest += bestHarvest - 300  # -300 for planting
                 self.workersWorked += 2
         # Complete farming    
         self.grain += totalHarvest
         self.model.totalGrain += totalHarvest
 
-
     def rent(self):
         # TODO
         pass
-    
+
     def consumeGrain(self):
         # TODO
         pass

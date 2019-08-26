@@ -1,12 +1,14 @@
-from mesa import Model
-from mesa.space import MultiGrid
-from mesa.datacollection import DataCollector
-import numpy as np
-import random
 import math
+import random
+
+import numpy as np
+from mesa import Model
+from mesa.datacollection import DataCollector
+from mesa.space import MultiGrid
 
 from src.agents import River, Field, Settlement, Household
 from src.schedule import RandomActivationByBreed
+
 
 class EgyptSim(Model):
     """
@@ -52,13 +54,13 @@ class EgyptSim(Model):
     description = "A model simulating wealth growth and distribution in Ancient Egypt"
 
     def __init__(self, height: int = 30, width: int = 30, timeSpan: int = 500,
-                startingSettlements: int = 14, startingHouseholds: int = 7,
-                startingHouseholdSize: int = 5, startingGrain: int = 3000,
-                minAmbition: float = 0.1, minCompetency: float = 0.5,
-                generationalVariation: float = 0.9, knowledgeRadius: int = 20,
-                distanceCost: int = 10, fallowLimit: int = 4, popGrowthRate: float = 0.1,
-                fission: bool = False, fissionChance: float = 0.7, rental: bool = False,
-                rentalRate: float = 0.5):
+                 startingSettlements: int = 14, startingHouseholds: int = 7,
+                 startingHouseholdSize: int = 5, startingGrain: int = 3000,
+                 minAmbition: float = 0.1, minCompetency: float = 0.5,
+                 generationalVariation: float = 0.9, knowledgeRadius: int = 20,
+                 distanceCost: int = 10, fallowLimit: int = 4, popGrowthRate: float = 0.1,
+                 fission: bool = False, fissionChance: float = 0.7, rental: bool = False,
+                 rentalRate: float = 0.5):
         """
         Create a new EgyptSim model
         Args:
@@ -109,19 +111,19 @@ class EgyptSim(Model):
         self.totalPopulation = startingSettlements * startingHouseholds * startingHouseholdSize
 
         self.schedule = RandomActivationByBreed(self)
-        self.grid = MultiGrid(self.height, self.width, torus = False)
+        self.grid = MultiGrid(self.height, self.width, torus=False)
         # TODO Setup full data collection
         # self.datacollector = DataCollector(
         #     {"Households": lambda m: m.schedule.get_breed_count(Household),
         #      "Settlements": lambda m: m.schedule.get_breed_count(Settlement),
         #     })
 
-        self.datacollector = DataCollector(model_reporters = {"Total Grain" : lambda m: m.totalGrain})
+        self.datacollector = DataCollector(model_reporters={"Total Grain": lambda m: m.totalGrain})
 
         self.setup()
         self.running = True
         self.datacollector.collect(self)
-    
+
     # def getTotalGrain(self):
     #     return self.totalGrain
 
@@ -151,7 +153,7 @@ class EgyptSim(Model):
                 y = self.random.randrange(self.height)
 
                 flag = False
-                cell = self.grid.get_cell_list_contents((x,y))
+                cell = self.grid.get_cell_list_contents((x, y))
                 # Check that tile is available
                 for agent in cell:
                     if agent.settlementTerritory:
@@ -169,42 +171,43 @@ class EgyptSim(Model):
             self.grid.place_agent(settlement, (x, y))
 
             # Set the surrounding fields as territory
-            local = self.grid.get_neighbors((x,y), moore = True, include_center = True, radius = 1)
+            local = self.grid.get_neighbors((x, y), moore=True, include_center=True, radius=1)
             for a in local:
                 a.settlementTerritory = True
                 # print(type(a), a.pos, a.settlementTerritory, sep = "\t")
-            self.schedule.add(settlement)
+            
 
             # Add households for the settlement to the scheduler
             for j in range(self.startingHouseholds):
                 ambition = self.minAmbition + np.random.uniform(0, 1 - self.minAmbition)
                 competency = self.minCompetency + np.random.uniform(0, 1 - self.minCompetency)
                 genCount = self.random.randrange(5)
-                household = Household(self.next_id(), self, (x, y), self.startingGrain,
+                household = Household(self.next_id(), self, settlement,(x, y), self.startingGrain,
                                       self.startingHouseholdSize, ambition, competency,
                                       genCount)
-                #! Dont add household to grid, that is redundant
+                # ! Dont add household to grid, that is redundant
                 self.schedule.add(household)
+            # Add settlement to the scheduler
+            self.schedule.add(settlement)
 
     def setup(self):
         """
         Setup model parameters
         """
         self.setupMapBase()
-        self.setupSettlementsHouseholds()  
-        
+        self.setupSettlementsHouseholds()
 
     def step(self):
         self.currentTime += 1
         self.setupFlood()
         self.schedule.step()
         self.datacollector.collect(self)
-    
+
     def setupFlood(self):
         """
         Variables used for flood methods for fields
         """
-        self.mu = random.randint(0, 11) + 5
-        self.sigma = random.randint(0, 6) + 5
+        self.mu = random.randint(0, 10) + 5
+        self.sigma = random.randint(0, 5) + 5
         self.alpha = (2 * self.sigma ** 2)
-        self.beta = 1/(self.sigma * math.sqrt( 2 * math.pi))
+        self.beta = 1 / (self.sigma * math.sqrt(2 * math.pi))
