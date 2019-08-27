@@ -4,6 +4,12 @@ from mesa.visualization.modules import CanvasGrid, ChartModule
 from src.agents import River, Field, Settlement
 from src.model import EgyptSim
 
+max = 1.36  # The man, the myth, the legendary Rhett worked this out using really slow and manual machine learning
+
+
+def rgb_to_hex(rgb):
+    return '#%02x%02x%02x' % rgb
+
 
 def portrayal(agent):
     if agent is None:
@@ -19,10 +25,26 @@ def portrayal(agent):
         portrayal["h"] = 1
         if agent.settlementTerritory:
             portrayal["Color"] = ["Purple"]
-        elif agent.owned:
-            portrayal["Color"] = ["#00FF00", "#00CC00", "#009900"]
+
+        # elif agent.owned:
+            # portrayal["Color"] = ["#00FF00", "#00CC00", "#009900"]
+
+        #    fertilityValue = agent.fertility
+        #   # Inverse for the  RGB Scale
+        #    inverseFertilityValue = max - fertilityValue
+        #    rValue = round(inverseFertilityValue * (255/max))
+        #    hexValue = rgb_to_hex((rValue, 255, 0))
+        #    portrayal["Color"] = [hexValue]
+
         else:
-            portrayal["Color"] = ["#84e184", "#adebad", "#d6f5d6"]
+            fertilityValue = agent.fertility
+            # Inverse for the  RGB Scale
+            inverseFertilityValue = max - fertilityValue
+            # More fertile = Lower Value for R, More Green
+            rValue = round(inverseFertilityValue * (255/max))
+            hexValue = rgb_to_hex((rValue, 230, 0))
+            portrayal["Color"] = [hexValue]
+
     elif type(agent) is River:
         portrayal["Shape"] = "rect"
         portrayal["Filled"] = "true"

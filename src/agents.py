@@ -88,7 +88,7 @@ class Field(Tile):
         beta = self.model.beta
         ticks = self.model.currentTime
 
-        self.fertility = 17 * (beta * (math.exp(0 - (self.pos[0] - mu) ** 2 / alpha)))
+        self.fertility = 17 * (beta * (math.e ** (0 - (self.pos[0] - mu) ** 2 / alpha)))
         self.avf = ((ticks * self.avf) + self.fertility) / (ticks + 1)
         self.harvested = False
 
