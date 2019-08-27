@@ -181,7 +181,7 @@ class Household(Agent):
             bestField = None
 
             # Iterate through fields on the grid
-            neighbours = self.model.grid.get_neighbors(self.pos, False, self.model.knowledgeRadius)
+            neighbours = self.model.grid.get_neighbors(pos = self.pos,moore = True, include_center =  False, radius = self.model.knowledgeRadius)
             for a in neighbours:
                 if (a.fertility > bestFertility and type(a).__name__ == "Field"
                         and a.owned == False and a.settlementTerritory == False):

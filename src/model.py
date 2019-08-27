@@ -67,7 +67,7 @@ class EgyptSim(Model):
             height: The height of the simulation grid
             width: The width of the simulation grid
             timeSpan: The number of years over which the model is to run
-            startingSettlements: The starting number of Settlements 
+            startingSettlements: The starting number of Settlements
             startingHouseholds: The starting number of Households per Settlement
             startingHouseholdSize: The starting number of workers in a Household
             startingGrain: The starting amount of grain for each Household
@@ -124,6 +124,8 @@ class EgyptSim(Model):
         self.running = True
         self.datacollector.collect(self)
 
+        print(self.knowledgeRadius)
+
     # def getTotalGrain(self):
     #     return self.totalGrain
 
@@ -175,14 +177,13 @@ class EgyptSim(Model):
             for a in local:
                 a.settlementTerritory = True
                 # print(type(a), a.pos, a.settlementTerritory, sep = "\t")
-            
 
             # Add households for the settlement to the scheduler
             for j in range(self.startingHouseholds):
                 ambition = self.minAmbition + np.random.uniform(0, 1 - self.minAmbition)
                 competency = self.minCompetency + np.random.uniform(0, 1 - self.minCompetency)
                 genCount = self.random.randrange(5)
-                household = Household(self.next_id(), self, settlement,(x, y), self.startingGrain,
+                household = Household(self.next_id(), self, settlement, (x, y), self.startingGrain,
                                       self.startingHouseholdSize, ambition, competency,
                                       genCount)
                 # ! Dont add household to grid, that is redundant
