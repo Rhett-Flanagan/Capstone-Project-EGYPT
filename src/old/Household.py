@@ -112,8 +112,8 @@ class Household:
             #Settlement.__pop -= 1
             #totalPop -= 1
 
-            if Household.__workers <= 0:
-                for i in range(length(Household.__fieldLocs)):
+            #if Household.__workers <= 0:
+             #   for i in range(length(Household.__fieldLocs)):
                    # __owned = False   unsure of iteraction between classes
 
 

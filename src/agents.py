@@ -1,5 +1,5 @@
 import math
-
+import random
 import numpy as np
 from mesa import Agent
 
@@ -232,24 +232,133 @@ class Household(Agent):
         pass
 
     def consumeGrain(self):
-        # TODO
-        pass
+        """
+        This method allows households to consume grain based on the number of workers they have.
+        Should a household have zero or fewer workers the household will then be removed from the simulation as it has died out.
+        The amount of grain consumed is based off of ethnographic data which suggests an adult needs an average of 160kg of grain per year to survive.
+        """
+        # Consume grain for all workers
+        self.grain -= self.workers*160   
+        
+        # Decrement amount of workers if grain is less than or equal to zero (also impacts overall population numbers)
+        if (self.grain <= 0):
+            self.grain = 0
+            self.workers -= 1
+            self.settlement.population -= 1
+            self.model.totalPopulation -= 1
+
+            # Check if there are still workers in the Household
+            if self.workers <= 0:
+                # Removes ownership of all fields
+                for i in self.fields:
+                    i.owned = False
+                # Decrements the amount of households and removes this household from the simulation
+                self.settlement.noHouseholds -= 1
+                self.settlement = None
+                self.model.grid.remove(self)
+                self.model.schedule.remove(self)
 
     def storageLoss(self):
-        # TODO
-        pass
+        """
+        This method removes grain from the households total to account for typical annual storage loss of agricultural product
+        """
+        self.grain = self.grain - (self.grain*0.1)
 
-    def populationShif(self):
+    def populationShift(self):
         # TODO
         pass
 
     def genChangeover(self):
-        # TODO
-        pass
+        """
+        This method is to simulate what may happen when a relative or child takes over the household and thus allows
+        for the level competency and ambition of a household to change as would be expected when an new person is in control.
+        """
+        # Decreases the generational countdown 
+        self.generationCountdown -= 1
+
+        # Checks if the generation countdown has reached zero and thus will occur
+        if self.generationCountdown <= 0:
+            # Picks a new random value for the next generation to last (Min of 10 years, Max of 15 years)
+            self.generationCountdown = random.randint(5) + 10 
+
+            # Chooses an amount to change ambition by between 0 and the generational variance number
+            ambitionChange = random.uniform(0, self.model.generationalVariation)
+            # Chooses a random number between 0 and 1
+            decreaseChance = random.random()
+
+            # If decreaseChance is < 0.5 it causes an ambition decrease for the next generation
+            if (decreaseChance < 0.5):
+                ambitionChange *= -1
+            
+            newAmbition = self.ambition + ambitionChange
+
+            # continues to recalculate the new ambition value until it is less than one and greater than the model's minimum ambition
+            while(newAmbition > 1 or newAmbition < self.model.minAmbition):  
+                 ambitionChange = random.uniform(0, self.model.generationalVariation)
+                 decreaseChance = random.random()
+
+                 if (decreaseChance < 0.5):
+                    ambitionChange *= -1
+            
+                 newAmbition = self.ambition + ambitionChange
+            
+            # sets the new ambition
+            self.ambition = newAmbition
+
+
+            # Chooses an amount to change competency by between 0 and the generational variance number
+            competencyChange = random.uniform(0, self.model.generationalVariation)
+            # Chooses a random number between 0 and 1
+            decreaseChance = random.random()
+
+            # If decreaseChance is < 0.5 it causes a competency decrease for the next generation
+            if (decreaseChance < 0.5):
+                competencyChange *= -1
+            
+            newComp = self.competency + competencyChange
+
+            # continues to recalculate the new competency value until it is less than one and greater than the model's minimum competency
+            while(newComp > 1 or newComp < self.model.minCompetency): 
+                competencyChange = random.uniform(0, self.model.generationalVariation)
+                decreaseChance = random.random()
+
+                if (decreaseChance < 0.5):
+                    competencyChange *= -1
+            
+                newComp = self.competency + competencyChange
+           
+            # sets the new competency
+            self.competency = newComp
 
     def fieldChangeover(self):
-        # TODO
-        pass
+        """
+        This method checks if an owned field has been harvested or not and tracks how many years it has been unharvested if not.
+        Should the field not be harvested for longer than or equal to the fallowlimit then the Household loses ownership
+        of the field and it is free for other households to claim.
+        """
+
+        # Array to store fields to delete
+        toDel = []
+        
+        # For loop to loop through all owned fields
+        for i in self.fields:
+            # If statement to check if a field has been harvested or not
+            if (i.harvested == True):
+                i.yearsFallow = 0
+            else:
+                i.yearsFallow += 1
+            
+            # If statement to add fallowlimit exceeding fields to an array of fields to delete
+            if (i.yearsFallow >= self.model.fallowLimit): 
+                i.owned = False
+                i.field = False
+                self.fieldsOwned -= 1
+                toDel.append(i)
+
+        # For loop to remove all fallowlimit exceded fields from the Households ownership
+        for i in toDel:
+            del self.fields[i]
+
 
     def step(self):
         self.claimFields()
