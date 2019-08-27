@@ -182,7 +182,7 @@ class EgyptSim(Model):
             for j in range(self.startingHouseholds):
                 ambition = self.minAmbition + np.random.uniform(0, 1 - self.minAmbition)
                 competency = self.minCompetency + np.random.uniform(0, 1 - self.minCompetency)
-                genCount = self.random.randrange(5)
+                genCount = self.random.randrange(5) + 10
                 household = Household(self.next_id(), self, settlement, (x, y), self.startingGrain,
                                       self.startingHouseholdSize, ambition, competency,
                                       genCount)
