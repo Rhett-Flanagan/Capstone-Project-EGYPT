@@ -279,7 +279,7 @@ class Household(Agent):
         # Checks if the generation countdown has reached zero and thus will occur
         if self.generationCountdown <= 0:
             # Picks a new random value for the next generation to last (Min of 10 years, Max of 15 years)
-            self.generationCountdown = random.randint(5) + 10 
+            self.generationCountdown = random.randint(0, 5) + 10 
 
             # Chooses an amount to change ambition by between 0 and the generational variance number
             ambitionChange = random.uniform(0, self.model.generationalVariation)
@@ -341,19 +341,19 @@ class Household(Agent):
         toDel = []
         
         # For loop to loop through all owned fields
-        for i in self.fields:
+        for i in range(len(self.fields)):
             # If statement to check if a field has been harvested or not
-            if (i.harvested == True):
-                i.yearsFallow = 0
+            if (self.fields[i].harvested == True):
+                self.fields[i].yearsFallow = 0
             else:
-                i.yearsFallow += 1
+                self.fields[i].yearsFallow += 1
             
             # If statement to add fallowlimit exceeding fields to an array of fields to delete
-            if (i.yearsFallow >= self.model.fallowLimit): 
-                i.owned = False
-                i.field = False
+            if (self.fields[i].yearsFallow >= self.model.fallowLimit): 
+                self.fields[i].owned = False
+                self.fields[i].field = False
                 self.fieldsOwned -= 1
-                toDel.append(i)
+                toDel.append(i - len(toDel)) # Subtract to account for array shrinkage as deletion happens
 
         # For loop to remove all fallowlimit exceded fields from the Households ownership
         for i in toDel:
@@ -361,6 +361,27 @@ class Household(Agent):
 
 
     def step(self):
+        """
+        The actions to take on a general step sequence
+        """
         self.claimFields()
         self.farm()
-        pass
+
+    def stepFarm(self):
+        """
+        Calls the farming methods for the initial run of households in the scheduler
+        """
+        self.claimFields()
+        self.farm()
+    
+    def stepRentConsumeChangeover(self):
+        """
+        Calls the renting, aging, changeover and methods
+        """
+        self.rent()
+        self.consumeGrain()
+        self.storageLoss()
+        self.fieldChangeover()
+        self.genChangeover()
+        self.populationShift()
+
