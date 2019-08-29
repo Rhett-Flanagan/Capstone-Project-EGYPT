@@ -9,6 +9,13 @@ from mesa.space import MultiGrid
 from src.agents import River, Field, Settlement, Household
 from src.schedule import EgyptSchedule
 
+    # Data collctor methods
+def compute_gini(model):
+    agent_wealths = [agent.wealth for agent in model.schedule.agents if type(agent) == Household]
+    x = sorted(agent_wealths)
+    N = model.scheduler.get_breed_count(Household)
+    B = sum(xi * (N - i) for i, xi in enumerate(x)) / (N * sum(x))
+    return (1 + (1 / N) - 2 * B)
 
 class EgyptSim(Model):
     """
@@ -113,18 +120,25 @@ class EgyptSim(Model):
         self.schedule = EgyptSchedule(self)
         self.grid = MultiGrid(self.height, self.width, torus=False)
         # TODO Setup full data collection
-        # self.datacollector = DataCollector(
-        #     {"Households": lambda m: m.schedule.get_breed_count(Household),
-        #      "Settlements": lambda m: m.schedule.get_breed_count(Settlement),
-        #      "Total Grain": lambda m: m.totalGrain,
-        #      "Total Population": 
-        #     })
+        self.datacollector = DataCollector(model_reporters = 
+            {"Households": lambda m: m.schedule.get_breed_count(Household),
+             "Settlements": lambda m: m.schedule.get_breed_count(Settlement),
+             "Total Grain": lambda m: m.totalGrain,
+             "Total Population": lambda m: m.totalPopulation,
+             #"Settlement Population": lambda m: m.schedule.agents_by_breed[Settlement].population # This is difficult, might need a whole bunch of 
+             "Gini Index": compute_gini
+            }#, 
+            # agent_reporters = 
+            #{"Settlement Population": lambda a: a.population if type(a) == Settlement else None}
+            )
 
-        self.datacollector = DataCollector(model_reporters={"Total Grain": lambda m: m.totalGrain})
+        #self.datacollector = DataCollector(model_reporters={"Total Grain": lambda m: m.totalGrain})
 
         self.setup()
         self.running = True
         self.datacollector.collect(self)
+
+
 
     def setupMapBase(self):
         """

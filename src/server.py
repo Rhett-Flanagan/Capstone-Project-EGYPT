@@ -61,7 +61,7 @@ def portrayal(agent):
                 # Upper Quartile - Maximum (1.36)
                 # Most Fertile - Dark Green
                 hexValue = rgb_to_hex((rValue, 180, 0))
-                print(hexValue)
+                # print(hexValue)
                 portrayal["Color"] = [hexValue]
 
     elif type(agent) is River:
@@ -80,10 +80,40 @@ def portrayal(agent):
     return portrayal
 
 
-grid = CanvasGrid(portrayal, 30, 30, 600, 600)
-chart = ChartModule([{"Label": "Total Grain", "Color": "Black"}], data_collector_name="datacollector")
+# List to display settlments in graph
+SETDICT = {"Set 1": "#F08080",
+           "Set 2": "#FF4500",
+           "Set 3": "#FFFF00",
+           "Set 4": "#FF8C00",
+           "Set 5": "#7CFC00",
+           "Set 6": "#006400",
+           "Set 7": "#808000",
+           "Set 8": "#00FFFF",
+           "Set 9": "#008080",
+           "Set 10": "#0000FF",
+           "Set 11": "#FF00FF",
+           "Set 12": "#FF69B4",
+           "Set 13": "#000000",
+           "Set 14": "#800000",
+           "Set 15": "#BC8F8F",
+           "Set 16": "#D2691E",
+           "Set 17": "#8B4513",
+           "Set 18": "#800080",
+           "Set 19": "#4B0082",
+           "Set 20": "#2E8B57"}
 
-server = ModularServer(EgyptSim, [grid, chart], "Egypt Sim", {"height": 30, "width": 30})
+# Grid element for rendering
+grid = CanvasGrid(portrayal, 30, 30, 600, 600)
+
+# Chart elements for rendering
+totalGrainChart = ChartModule([{"Label": "Total Grain", "Color": "Black"}])
+totalPopulationChart = ChartModule([{"Label": "Total Population", "Color": "Black"}])
+settlementsHouseholdsChart = ChartModule([{"Label": "Settlements", "Color": "Blue"},
+                                          {"Label": "Households", "Color": "Red"}])
+settlementPopulationChart = ChartModule([{"Label": "test", "Color": "Black"} for (label, color) in SETDICT.items()])
+
+
+server = ModularServer(EgyptSim, [grid, totalGrainChart,totalPopulationChart, settlementsHouseholdsChart, settlementPopulationChart], "Egypt Sim", {"height": 30, "width": 30})
 
 server.port = 8521
 # server.launch()
