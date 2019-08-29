@@ -7,7 +7,7 @@ from mesa.datacollection import DataCollector
 from mesa.space import MultiGrid
 
 from src.agents import River, Field, Settlement, Household
-from src.schedule import RandomActivationByBreed
+from src.schedule import EgyptSchedule
 
 
 class EgyptSim(Model):
@@ -110,12 +110,14 @@ class EgyptSim(Model):
         self.totalGrain = startingGrain * startingHouseholds * startingSettlements
         self.totalPopulation = startingSettlements * startingHouseholds * startingHouseholdSize
 
-        self.schedule = RandomActivationByBreed(self)
+        self.schedule = EgyptSchedule(self)
         self.grid = MultiGrid(self.height, self.width, torus=False)
         # TODO Setup full data collection
         # self.datacollector = DataCollector(
         #     {"Households": lambda m: m.schedule.get_breed_count(Household),
         #      "Settlements": lambda m: m.schedule.get_breed_count(Settlement),
+        #      "Total Grain": lambda m: m.totalGrain,
+        #      "Total Population": 
         #     })
 
         self.datacollector = DataCollector(model_reporters={"Total Grain": lambda m: m.totalGrain})
@@ -123,11 +125,6 @@ class EgyptSim(Model):
         self.setup()
         self.running = True
         self.datacollector.collect(self)
-
-        print(self.knowledgeRadius)
-
-    # def getTotalGrain(self):
-    #     return self.totalGrain
 
     def setupMapBase(self):
         """
@@ -176,17 +173,16 @@ class EgyptSim(Model):
             local = self.grid.get_neighbors((x, y), moore=True, include_center=True, radius=1)
             for a in local:
                 a.settlementTerritory = True
-                # print(type(a), a.pos, a.settlementTerritory, sep = "\t")
+                # // print(type(a), a.pos, a.settlementTerritory, sep = "\t")
 
             # Add households for the settlement to the scheduler
             for j in range(self.startingHouseholds):
-                ambition = self.minAmbition + np.random.uniform(0, 1 - self.minAmbition)
-                competency = self.minCompetency + np.random.uniform(0, 1 - self.minCompetency)
-                genCount = self.random.randrange(5) + 10
+                ambition =  np.random.uniform(self.minAmbition, 1)
+                competency = np.random.uniform(self.minCompetency, 1)
+                genCount = self.random.randrange(5)
                 household = Household(self.next_id(), self, settlement, (x, y), self.startingGrain,
-                                      self.startingHouseholdSize, ambition, competency,
-                                      genCount)
-                # ! Dont add household to grid, that is redundant
+                                      self.startingHouseholdSize, ambition, competency, genCount)
+                # ! Dont add household to grid, is redundant
                 self.schedule.add(household)
             # Add settlement to the scheduler
             self.schedule.add(settlement)
@@ -203,10 +199,12 @@ class EgyptSim(Model):
         self.setupFlood()
         self.schedule.step()
         self.datacollector.collect(self)
+        if self.currentTime >= self.timeSpan: # Cease running once time limit is hit
+            self.running = False
 
     def setupFlood(self):
         """
-        Variables used for flood methods for fields
+        Sets up common variables used for the flood method in Fields
         """
         self.mu = random.randint(0, 10) + 5
         self.sigma = random.randint(0, 5) + 5
