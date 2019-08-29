@@ -99,6 +99,16 @@ class TestSetupMethods(unittest.TestCase):
         """Test that farm operates correctly"""
         
 
+class TestAgentLogic(unittest.TestCase):
+    sim = EgyptSim(height=5, width=5, timeSpan=10, startingSettlements=2, startingHouseholds=2,
+                   startingHouseholdSize=2, startingGrain=5000, minAmbition=0.5, minCompetency=0.1,
+                   generationalVariation=0.7, knowledgeRadius=2, distanceCost=10, fallowLimit=1,
+                   popGrowthRate=0.2, fission=False, fissionChance=0.5, rental=False, rentalRate=0.1)
+
+    
+    def testConsumeGrain(self):
+        """Test that the grain is consumed (reduced) correctly """
+        
 
 
 def suite():

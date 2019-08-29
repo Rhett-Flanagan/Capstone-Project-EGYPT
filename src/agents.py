@@ -269,8 +269,21 @@ class Household(Agent):
         self.grain -= (self.grain*0.1)
 
     def populationShift(self):
-        # TODO
-        pass
+        """
+        This method allows for population maintenance as households 'die', simulates movements of workers from failed to more successful households
+        """
+        startingPopulation = self.model.startingSettlements*self.model.startingHouseholds*self.model.startingHouseholdSize
+
+        populateChance = random.uniform(0,1)
+
+        if (self.model.totalPopulation <= (startingPopulation*(1 + pow(self.model.popGrowthRate/100,self.model.currentTime))) and (populateChance > 0.5)):
+            self.workers += 1
+            self.settlement.population += 1
+            self.model.totalPopulation = self.model.totalPopulation + self.workers   ##### NEED TO CONFIRM THIS
+        
+        projectedHistoricalPopulation = pow(startingPopulation*(1.001),self.model.currentTime)
+
+        
 
     def genChangeover(self):
         """
@@ -285,51 +298,40 @@ class Household(Agent):
             # Picks a new random value for the next generation to last (Min of 10 years, Max of 15 years)
             self.generationCountdown = random.randint(0, 5) + 10 
 
-            # Chooses an amount to change ambition by between 0 and the generational variance number
-            ambitionChange = random.uniform(0, self.model.generationalVariation)
-            # Chooses a random number between 0 and 1
-            decreaseChance = random.random()
-
-            # If decreaseChance is < 0.5 it causes an ambition decrease for the next generation
-            if (decreaseChance < 0.5):
-                ambitionChange *= -1
-            
-            newAmbition = self.ambition + ambitionChange
-
             # continues to recalculate the new ambition value until it is less than one and greater than the model's minimum ambition
-            while(newAmbition > 1 or newAmbition < self.model.minAmbition):  
-                 ambitionChange = random.uniform(0, self.model.generationalVariation)
-                 decreaseChance = random.random()
+            while(True):
+                # Chooses an amount to change ambition by between 0 and the generational variance number
+                ambitionChange = random.uniform(0, self.model.generationalVariation)
+                # Chooses a random number between 0 and 1
+                decreaseChance = random.uniform(0,1)
 
-                 if (decreaseChance < 0.5):
+                # If decreaseChance is < 0.5 it causes an ambition decrease for the next generation
+                if (decreaseChance < 0.5):
                     ambitionChange *= -1
             
-                 newAmbition = self.ambition + ambitionChange
+                newAmbition = self.ambition + ambitionChange
+
+                if((newAmbition > 1) or (newAmbition < self.model.minAmbition)):
+                    break
             
             # sets the new ambition
             self.ambition = newAmbition
 
-
-            # Chooses an amount to change competency by between 0 and the generational variance number
-            competencyChange = random.uniform(0, self.model.generationalVariation)
-            # Chooses a random number between 0 and 1
-            decreaseChance = random.random()
-
-            # If decreaseChance is < 0.5 it causes a competency decrease for the next generation
-            if (decreaseChance < 0.5):
-                competencyChange *= -1
-            
-            newComp = self.competency + competencyChange
-
             # continues to recalculate the new competency value until it is less than one and greater than the model's minimum competency
-            while(newComp > 1 or newComp < self.model.minCompetency): 
+            while(True): 
+                # Chooses an amount to change competency by between 0 and the generational variance number
                 competencyChange = random.uniform(0, self.model.generationalVariation)
-                decreaseChance = random.random()
+                # Chooses a random number between 0 and 1
+                decreaseChance = random.uniform(0,1)
 
+                # If decreaseChance is < 0.5 it causes a competency decrease for the next generation
                 if (decreaseChance < 0.5):
                     competencyChange *= -1
             
                 newComp = self.competency + competencyChange
+
+                if(newComp > 1 or newComp < self.model.minCompetency):
+                    break
            
             # sets the new competency
             self.competency = newComp
