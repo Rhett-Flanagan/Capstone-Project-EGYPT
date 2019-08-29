@@ -255,7 +255,6 @@ class Household(Agent):
                 # Decrements the amount of households and removes this household from the simulation
                 self.settlement.noHouseholds -= 1
                 self.settlement = None
-                self.model.grid.remove(self)
                 self.model.schedule.remove(self)
 
     def storageLoss(self):
@@ -272,7 +271,7 @@ class Household(Agent):
 
         populateChance = random.uniform(0,1)
 
-        if (self.model.totalPopulation <= (startingPopulation*(1 + pow(self.model.popGrowthRate/100,self.model.currentTime) and (populateChance > 0.5)):
+        if (self.model.totalPopulation <= (startingPopulation*(1 + pow(self.model.popGrowthRate/100,self.model.currentTime))) and (populateChance > 0.5)):
             self.workers += 1
             self.settlement.population += 1
             self.model.totalPopulation = self.model.totalPopulation + self.workers   ##### NEED TO CONFIRM THIS
@@ -307,7 +306,7 @@ class Household(Agent):
             
                 newAmbition = self.ambition + ambitionChange
 
-                 if(newAmbition > 1 or newAmbition < self.model.minAmbition):
+                if((newAmbition > 1) or (newAmbition < self.model.minAmbition)):
                     break
             
             # sets the new ambition
@@ -368,16 +367,6 @@ class Household(Agent):
         """
         self.claimFields()
         self.farm()
-<<<<<<< HEAD
-        # Rent land here
-        self.consumeGrain()
-        self.storageLoss()
-        #Check settlement population?
-        self.fieldChangeover()
-        self.genChangeover()
-        #self.populationShift()
-        pass
-=======
 
     def stepFarm(self):
         """
@@ -397,4 +386,3 @@ class Household(Agent):
         self.genChangeover()
         self.populationShift()
 
->>>>>>> fbd2f327d9b7bdbe4a4b0fb00af055af525254c9
