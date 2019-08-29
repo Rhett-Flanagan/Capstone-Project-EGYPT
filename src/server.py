@@ -107,13 +107,15 @@ grid = CanvasGrid(portrayal, 30, 30, 600, 600)
 
 # Chart elements for rendering
 totalGrainChart = ChartModule([{"Label": "Total Grain", "Color": "Black"}])
-totalPopulationChart = ChartModule([{"Label": "Total Population", "Color": "Black"}])
+totalPopulationChart = ChartModule([{"Label": "Total Population", "Color": "Black"},
+                                    {"Label": "Projected Hisorical Poulation", "Color": "Red"}])
 settlementsHouseholdsChart = ChartModule([{"Label": "Settlements", "Color": "Blue"},
                                           {"Label": "Households", "Color": "Red"}])
-settlementPopulationChart = ChartModule([{"Label": "test", "Color": "Black"} for (label, color) in SETDICT.items()])
+giniChart = ChartModule([{"Label": "Gini-Index", "Color": "Black"}])
+#settlementPopulationChart = ChartModule([{"Label": "test", "Color": "Black"} for (label, color) in SETDICT.items()])
 
 
-server = ModularServer(EgyptSim, [grid, totalGrainChart,totalPopulationChart, settlementsHouseholdsChart, settlementPopulationChart], "Egypt Sim", {"height": 30, "width": 30})
+server = ModularServer(EgyptSim, [grid, totalGrainChart,totalPopulationChart, settlementsHouseholdsChart, giniChart], "Egypt Sim", {"height": 30, "width": 30})
 
 server.port = 8521
 # server.launch()

@@ -124,7 +124,6 @@ class Settlement(Tile):
         pass
 
     def step(self):
-        print(self.population)
         self.fission()
 
 
@@ -212,7 +211,7 @@ class Household(Agent):
             bestField = None
             for f in self.fields:
                 if not f.harvested:
-                    harvest = ((f.fertility * maxYield * self.competency) - 
+                    harvest = (int(f.fertility * maxYield * self.competency) - 
                               (((abs(self.pos[0]) - f.pos[0]) + 
                                  abs(self.pos[1] - f.pos[1])) * 
                                  self.model.distanceCost))
@@ -258,15 +257,14 @@ class Household(Agent):
                     i.owned = False
                 # Decrements the amount of households and removes this household from the simulation
                 self.settlement.noHouseholds -= 1
-                self.settlement = None
                 self.model.schedule.remove(self)
 
     def storageLoss(self):
         """
         This method removes grain from the households total to account for typical annual storage loss of agricultural product
         """
-        self.model.totalGrain -= self.grain * 0.1
-        self.grain -= (self.grain*0.1)
+        self.model.totalGrain -= int(self.grain * 0.1) # Prevent grain going to a float because unrestricted types
+        self.grain -= int(self.grain*0.1)
 
     def populationShift(self):
         """
@@ -281,7 +279,7 @@ class Household(Agent):
             self.settlement.population += 1
             self.model.totalPopulation = self.model.totalPopulation + self.workers   ##### NEED TO CONFIRM THIS
         
-        projectedHistoricalPopulation = pow(startingPopulation*(1.001),self.model.currentTime)
+        
 
         
 

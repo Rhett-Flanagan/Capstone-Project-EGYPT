@@ -9,11 +9,19 @@ from mesa.space import MultiGrid
 from src.agents import River, Field, Settlement, Household
 from src.schedule import EgyptSchedule
 
-    # Data collctor methods
+# Data collctor methods
 def compute_gini(model):
-    agent_wealths = [agent.wealth for agent in model.schedule.agents if type(agent) == Household]
-    x = sorted(agent_wealths)
-    N = model.scheduler.get_breed_count(Household)
+    # Sorting functor
+    def wealth(agent):
+        return agent.grain
+
+    agents = model.schedule.get_breed(Household)
+    # print(agent_wealths)
+    agents.sort(key = wealth)
+    x = []
+    for agent in agents:
+        x.append(agent.grain)
+    N = model.schedule.get_breed_count(Household)
     B = sum(xi * (N - i) for i, xi in enumerate(x)) / (N * sum(x))
     return (1 + (1 / N) - 2 * B)
 
@@ -47,6 +55,8 @@ class EgyptSim(Model):
     rentalRate = 0.5
     totalGrain = 0
     totalPopulation = 0
+    startingPopulation = 0
+    projectedHistoricalPopulation = 0
 
     # Step variables
     mu = 0
@@ -116,6 +126,8 @@ class EgyptSim(Model):
         self.rentalRate = rentalRate
         self.totalGrain = startingGrain * startingHouseholds * startingSettlements
         self.totalPopulation = startingSettlements * startingHouseholds * startingHouseholdSize
+        self.startingPopulation = self.totalPopulation
+        self.projectedHistoricalPopulation = self.startingPopulation
 
         self.schedule = EgyptSchedule(self)
         self.grid = MultiGrid(self.height, self.width, torus=False)
@@ -125,14 +137,15 @@ class EgyptSim(Model):
              "Settlements": lambda m: m.schedule.get_breed_count(Settlement),
              "Total Grain": lambda m: m.totalGrain,
              "Total Population": lambda m: m.totalPopulation,
-             #"Settlement Population": lambda m: m.schedule.agents_by_breed[Settlement].population # This is difficult, might need a whole bunch of 
-             "Gini Index": compute_gini
+             "Projected Hisorical Poulation": lambda m: m.projectedHistoricalPopulation,
+             # "Settlement Population": lambda m: m.schedule.agents_by_breed[Settlement].population # This is difficult, might need to make a custom datacollector for this
+             "Gini-Index": compute_gini
             }#, 
             # agent_reporters = 
-            #{"Settlement Population": lambda a: a.population if type(a) == Settlement else None}
+            # {"Settlement Population": lambda a: a.population if type(a) == Settlement else None}
             )
 
-        #self.datacollector = DataCollector(model_reporters={"Total Grain": lambda m: m.totalGrain})
+        # self.datacollector = DataCollector(model_reporters={"Total Grain": lambda m: m.totalGrain})
 
         self.setup()
         self.running = True
@@ -212,6 +225,7 @@ class EgyptSim(Model):
         self.currentTime += 1
         self.setupFlood()
         self.schedule.step()
+        self.projectedHistoricalPopulation = self.startingPopulation * ((1.001) ** self.currentTime)
         self.datacollector.collect(self)
         if self.currentTime >= self.timeSpan: # Cease running once time limit is hit
             self.running = False
