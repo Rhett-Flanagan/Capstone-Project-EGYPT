@@ -274,7 +274,7 @@ class Household(Agent):
 
         populateChance = random.uniform(0,1)
 
-        if (self.model.totalPopulation <= (startingPopulation*(1 + pow(self.model.popGrowthRate/100,self.model.currentTime))) and (populateChance > 0.5)):
+        if (self.model.totalPopulation <= (startingPopulation*((1 + self.model.popGrowthRate/100)**self.model.currentTime)) and (populateChance > 0.5)):
             self.workers += 1
             self.settlement.population += 1
             self.model.totalPopulation = self.model.totalPopulation + self.workers   ##### NEED TO CONFIRM THIS
