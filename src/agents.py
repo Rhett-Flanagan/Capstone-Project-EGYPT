@@ -254,7 +254,7 @@ class Household(Agent):
                     i.owned = False
                 # Decrements the amount of households and removes this household from the simulation
                 self.settlement.noHouseholds -= 1
-                self.settlement = None
+                #self.settlement = None
                 self.model.schedule.remove(self)
 
     def storageLoss(self):
@@ -268,7 +268,7 @@ class Household(Agent):
         This method allows for population maintenance as households 'die', simulates movements of workers from failed to more successful households
         """
         startingPopulation = self.model.startingSettlements*self.model.startingHouseholds*self.model.startingHouseholdSize
-
+        print(self.settlement.population)
         populateChance = random.uniform(0,1)
 
         if (self.model.totalPopulation <= (startingPopulation*(1 + pow(self.model.popGrowthRate/100,self.model.currentTime))) and (populateChance > 0.5)):
@@ -276,7 +276,7 @@ class Household(Agent):
             self.settlement.population += 1
             self.model.totalPopulation = self.model.totalPopulation + self.workers   ##### NEED TO CONFIRM THIS
         
-        projectedHistoricalPopulation = pow(startingPopulation*(1.001),self.model.currentTime)
+        projectedHistoricalPopulation = startingPopulation*((1.001)**self.model.currentTime)
 
         
 

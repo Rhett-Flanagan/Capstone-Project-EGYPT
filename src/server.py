@@ -1,5 +1,6 @@
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import CanvasGrid, ChartModule
+from mesa.visualization.UserParam import UserSettableParameter
 
 from src.agents import River, Field, Settlement
 from src.model import EgyptSim
@@ -79,11 +80,28 @@ def portrayal(agent):
         # portrayal["scale"] = 1
     return portrayal
 
+model_params = {"height": 30, 
+                "width": 30,
+                "timeSpan": UserSettableParameter('slider', 'Model Time Span', 500, 100, 500, 25),
+                "startingSettlements": UserSettableParameter('slider', 'Starting Settlements', 14, 5, 20),
+                "startingHouseholds": UserSettableParameter('slider', 'Starting Households', 7, 1, 10),
+                "startingHouseholdSize": UserSettableParameter('slider', 'Starting Household Size', 5, 1, 10),
+                "startingGrain": UserSettableParameter('slider', 'Starting Grain', 3000, 100, 8000, 100),
+                "minAmbition": UserSettableParameter('slider', 'Minimum Ambition', 0.1, 0.0, 1.0, 0.1),
+                "minCompetency": UserSettableParameter('slider', 'Minimum Competency', 0.7, 0.0, 1.0, 0.1),
+                "generationalVariation": UserSettableParameter('slider', 'Generational Variation', 0.9, 0.0, 1.0, 0.1),
+                "knowledgeRadius": UserSettableParameter('slider', 'Knowledge Radius', 20, 5, 40, 5),
+                "distanceCost": UserSettableParameter('slider', 'Distance Cost (in kg)', 10, 1, 15),
+                "fallowLimit": UserSettableParameter('slider', 'Population Growth Rate (in %)', 0.010, 0.00, 0.050, 0.001),
+                "fission": UserSettableParameter('checkbox', 'Allow Household Fission?', value=False),
+                "fissionChance": UserSettableParameter('slider', 'Minimum Fission Chance', 0.7, 0.5, 0.9, 0.1),
+                "rental": UserSettableParameter('checkbox', 'Allow Land Rental?', value=False),
+                "rentalRate": UserSettableParameter('slider', 'Land Rental Rate', 0.5, 0.3, 0.6, 0.05)}
 
 grid = CanvasGrid(portrayal, 30, 30, 600, 600)
 chart = ChartModule([{"Label": "Total Grain", "Color": "Black"}], data_collector_name="datacollector")
 
-server = ModularServer(EgyptSim, [grid, chart], "Egypt Sim", {"height": 30, "width": 30})
+server = ModularServer(EgyptSim, [grid, chart], "Egypt Sim", model_params)
 
 server.port = 8521
 # server.launch()
