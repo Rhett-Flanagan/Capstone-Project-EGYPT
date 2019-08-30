@@ -136,6 +136,7 @@ elements = [grid,
 
 model_params = {"height": 30, 
                 "width": 30,
+                "infoText": UserSettableParameter('static_text', value = "After changing any of the starting settings for the simulation please click Reset in order for these changes to take effect. Please enjoy our MODEL BITCHES!!!"),
                 "timeSpan": UserSettableParameter('slider', 'Model Time Span', 500, 100, 500, 25),
                 "startingSettlements": UserSettableParameter('slider', 'Starting Settlements', 14, 5, 20),
                 "startingHouseholds": UserSettableParameter('slider', 'Starting Households', 7, 1, 10),

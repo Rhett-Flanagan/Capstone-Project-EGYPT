@@ -230,8 +230,53 @@ class Household(Agent):
         self.model.totalGrain += totalHarvest
 
     def rent(self):
-        # TODO
-        pass
+        """
+        This method allows more ambition and competent households to farm the unharvested fields owned by other households.
+        """
+        # Functor to get the ambition of an agent for sorting
+        def ambition(agent):
+            return agent.ambition
+
+        # Checks to see if rental is allowed
+        if(self.model.rental == True):
+            # Gets a list of the households and sorts by ambition level
+            agents = self.model.schedule.get_breed(Household)
+            agents.sort(key = ambition)
+
+            totalHarvest = 0
+            maxYield = 2475
+            
+            # Creates an array of all farms owned by households.
+            allfarms = []
+            for agent in agents:
+                allfarms = allfarms + agent.fields
+
+            #loops through all households
+            for agent in agents:
+                for i in range((agent.workers - agent.workersWorked)// 2):
+                    # Determine best field
+                    bestHarvest = 0
+                    bestField = None
+                    for a in allfarms:
+                        if not a.harvested:
+                            harvest = (int(a.fertility * maxYield * agent.competency) - 
+                                    (((abs(agent.pos[0]) - a.pos[0]) + 
+                                        abs(agent.pos[1] - a.pos[1])) * 
+                                        agent.model.distanceCost))
+                            if harvest > bestHarvest:
+                                bestHarvest = harvest
+                                bestField = a
+                    # Farm best field
+                    chance = np.random.uniform(0, 1)
+                    if ((agent.grain > (agent.workers * 160)) or (chance < agent.ambition * agent.competency)) and (
+                            bestField is not None):
+                        bestField.harvested = True
+                        print("HI we are renting")
+                        totalHarvest += bestHarvest - 300  # -300 for planting
+                        agent.workersWorked += 2
+                # Complete farming    
+                agent.grain += totalHarvest
+                agent.model.totalGrain += totalHarvest
 
     def consumeGrain(self):
         """
