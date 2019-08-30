@@ -88,7 +88,7 @@ class Field(Tile):
         beta = self.model.beta
         ticks = self.model.currentTime
 
-        self.fertility = 17 * (beta * (math.e ** (0 - (self.pos[0] - mu) ** 2 / alpha)))
+        self.fertility = 17 * (beta * (math.exp(0 - (self.pos[0] - mu) ** 2 / alpha)))
         self.avf = ((ticks * self.avf) + self.fertility) / (ticks + 1)
         self.harvested = False
 
@@ -211,8 +211,10 @@ class Household(Agent):
             bestField = None
             for f in self.fields:
                 if not f.harvested:
-                    harvest = ((f.fertility * maxYield * self.competency) - (((abs(self.pos[0]) - f.pos[0]) + abs(
-                        self.pos[1] - f.pos[1])) * self.model.distanceCost))
+                    harvest = (int(f.fertility * maxYield * self.competency) - 
+                              (((abs(self.pos[0]) - f.pos[0]) + 
+                                 abs(self.pos[1] - f.pos[1])) * 
+                                 self.model.distanceCost))
                     if harvest > bestHarvest:
                         bestHarvest = harvest
                         bestField = f
@@ -238,7 +240,8 @@ class Household(Agent):
         The amount of grain consumed is based off of ethnographic data which suggests an adult needs an average of 160kg of grain per year to survive.
         """
         # Consume grain for all workers
-        self.grain -= self.workers*160   
+        self.model.totalGrain -= self.workers * 160
+        self.grain -= self.workers * 160   
         
         # Decrement amount of workers if grain is less than or equal to zero (also impacts overall population numbers)
         if (self.grain <= 0):
@@ -254,21 +257,21 @@ class Household(Agent):
                     i.owned = False
                 # Decrements the amount of households and removes this household from the simulation
                 self.settlement.noHouseholds -= 1
-                #self.settlement = None
                 self.model.schedule.remove(self)
 
     def storageLoss(self):
         """
         This method removes grain from the households total to account for typical annual storage loss of agricultural product
         """
-        self.grain = self.grain - (self.grain*0.1)
+        self.model.totalGrain -= int(self.grain * 0.1) # Prevent grain going to a float because unrestricted types
+        self.grain -= int(self.grain*0.1)
 
     def populationShift(self):
         """
         This method allows for population maintenance as households 'die', simulates movements of workers from failed to more successful households
         """
         startingPopulation = self.model.startingSettlements*self.model.startingHouseholds*self.model.startingHouseholdSize
-        print(self.settlement.population)
+
         populateChance = random.uniform(0,1)
 
         if (self.model.totalPopulation <= (startingPopulation*(1 + pow(self.model.popGrowthRate/100,self.model.currentTime))) and (populateChance > 0.5)):
@@ -276,7 +279,7 @@ class Household(Agent):
             self.settlement.population += 1
             self.model.totalPopulation = self.model.totalPopulation + self.workers   ##### NEED TO CONFIRM THIS
         
-        projectedHistoricalPopulation = startingPopulation*((1.001)**self.model.currentTime)
+        
 
         
 
@@ -385,4 +388,3 @@ class Household(Agent):
         self.fieldChangeover()
         self.genChangeover()
         self.populationShift()
-

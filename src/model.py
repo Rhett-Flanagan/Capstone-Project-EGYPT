@@ -9,6 +9,67 @@ from mesa.space import MultiGrid
 from src.agents import River, Field, Settlement, Household
 from src.schedule import EgyptSchedule
 
+# Data collctor methods
+def gini(model):
+    # Sorting functor
+    def wealth(agent):
+        return agent.grain
+
+    agents = model.schedule.get_breed(Household)
+    # print(agent_wealths)
+    agents.sort(key = wealth)
+    x = []
+    for agent in agents:
+        x.append(agent.grain)
+    N = model.schedule.get_breed_count(Household)
+    B = sum(xi * (N - i) for i, xi in enumerate(x)) / (N * sum(x))
+    return (1 + (1 / N) - 2 * B)
+
+def minSetPop(model):
+    settlements = model.schedule.get_breed(Settlement)
+    minPop = float("inf") # Workaround of removal of sys.maxint
+    for settlement in settlements:
+        if(minPop > settlement.population):
+            minPop = settlement.population
+    return minPop
+
+def maxSetPop(model):
+    settlements = model.schedule.get_breed(Settlement)
+    maxPop = 0
+    for settlement in settlements:
+        if(maxPop < settlement.population):
+            maxPop = settlement.population
+    return maxPop
+
+def meanSetPop(model):
+    settlements = model.schedule.get_breed(Settlement)
+    meanPop = 0
+    for settlement in settlements:
+        meanPop += settlement.population
+    return meanPop/model.schedule.get_breed_count(Settlement)
+
+def minHPop(model):
+    households = model.schedule.get_breed(Household)
+    minPop = float("inf") # Workaround of removal of sys.maxint
+    for household in households:
+        if(minPop > household.workers):
+            minPop = household.workers
+    return minPop
+
+def maxHPop(model):
+    households = model.schedule.get_breed(Household)
+    maxPop = 0
+    for household in households:
+        if(maxPop < household.workers):
+            maxPop = household.workers
+    return maxPop
+
+def meanHPop(model):
+    households = model.schedule.get_breed(Household)
+    meanPop = 0
+    for household in households:
+        meanPop += household.workers
+    return meanPop/model.schedule.get_breed_count(Household)
 
 class EgyptSim(Model):
     """
@@ -40,6 +101,8 @@ class EgyptSim(Model):
     rentalRate = 0.5
     totalGrain = 0
     totalPopulation = 0
+    startingPopulation = 0
+    projectedHistoricalPopulation = 0
 
     # Step variables
     mu = 0
@@ -109,22 +172,33 @@ class EgyptSim(Model):
         self.rentalRate = rentalRate
         self.totalGrain = startingGrain * startingHouseholds * startingSettlements
         self.totalPopulation = startingSettlements * startingHouseholds * startingHouseholdSize
+        self.startingPopulation = self.totalPopulation
+        self.projectedHistoricalPopulation = self.startingPopulation
 
         self.schedule = EgyptSchedule(self)
         self.grid = MultiGrid(self.height, self.width, torus=False)
-        # TODO Setup full data collection
-        # self.datacollector = DataCollector(
-        #     {"Households": lambda m: m.schedule.get_breed_count(Household),
-        #      "Settlements": lambda m: m.schedule.get_breed_count(Settlement),
-        #      "Total Grain": lambda m: m.totalGrain,
-        #      "Total Population": 
-        #     })
+        # Overarching datacollector features, specific agent level features need to be done seperately because they are not propperly handled in the code
+        self.datacollector = DataCollector(model_reporters = 
+            {"Households": lambda m: m.schedule.get_breed_count(Household),
+             "Settlements": lambda m: m.schedule.get_breed_count(Settlement),
+             "Total Grain": lambda m: m.totalGrain,
+             "Total Population": lambda m: m.totalPopulation,
+             "Projected Hisorical Poulation": lambda m: m.projectedHistoricalPopulation,
+             "Gini-Index": gini,
+             "Maximum Settlement Population": maxSetPop,
+             "Minimum Settlement Population": minSetPop,
+             "Mean Settlement Poulation" : meanSetPop,
+             "Maximum Household Population": maxHPop,
+             "Minimum Household Population": minHPop,
+             "Mean Household Poulation" : meanHPop
+            })
 
-        self.datacollector = DataCollector(model_reporters={"Total Grain": lambda m: m.totalGrain})
 
         self.setup()
         self.running = True
         self.datacollector.collect(self)
+
+
 
     def setupMapBase(self):
         """
@@ -198,6 +272,7 @@ class EgyptSim(Model):
         self.currentTime += 1
         self.setupFlood()
         self.schedule.step()
+        self.projectedHistoricalPopulation = self.startingPopulation * ((1.001) ** self.currentTime)
         self.datacollector.collect(self)
         if self.currentTime >= self.timeSpan: # Cease running once time limit is hit
             self.running = False
