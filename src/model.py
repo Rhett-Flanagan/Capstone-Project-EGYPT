@@ -10,7 +10,7 @@ from src.agents import River, Field, Settlement, Household
 from src.schedule import EgyptSchedule
 
 # Data collctor methods
-def compute_gini(model):
+def gini(model):
     # Sorting functor
     def wealth(agent):
         return agent.grain
@@ -24,6 +24,52 @@ def compute_gini(model):
     N = model.schedule.get_breed_count(Household)
     B = sum(xi * (N - i) for i, xi in enumerate(x)) / (N * sum(x))
     return (1 + (1 / N) - 2 * B)
+
+def minSetPop(model):
+    settlements = model.schedule.get_breed(Settlement)
+    minPop = float("inf") # Workaround of removal of sys.maxint
+    for settlement in settlements:
+        if(minPop > settlement.population):
+            minPop = settlement.population
+    return minPop
+
+def maxSetPop(model):
+    settlements = model.schedule.get_breed(Settlement)
+    maxPop = 0
+    for settlement in settlements:
+        if(maxPop < settlement.population):
+            maxPop = settlement.population
+    return maxPop
+
+def meanSetPop(model):
+    settlements = model.schedule.get_breed(Settlement)
+    meanPop = 0
+    for settlement in settlements:
+        meanPop += settlement.population
+    return meanPop/model.schedule.get_breed_count(Settlement)
+
+def minHPop(model):
+    households = model.schedule.get_breed(Household)
+    minPop = float("inf") # Workaround of removal of sys.maxint
+    for household in households:
+        if(minPop > household.workers):
+            minPop = household.workers
+    return minPop
+
+def maxHPop(model):
+    households = model.schedule.get_breed(Household)
+    maxPop = 0
+    for household in households:
+        if(maxPop < household.workers):
+            maxPop = household.workers
+    return maxPop
+
+def meanHPop(model):
+    households = model.schedule.get_breed(Household)
+    meanPop = 0
+    for household in households:
+        meanPop += household.workers
+    return meanPop/model.schedule.get_breed_count(Household)
 
 class EgyptSim(Model):
     """
@@ -131,21 +177,22 @@ class EgyptSim(Model):
 
         self.schedule = EgyptSchedule(self)
         self.grid = MultiGrid(self.height, self.width, torus=False)
-        # TODO Setup full data collection
+        # Overarching datacollector features, specific agent level features need to be done seperately because they are not propperly handled in the code
         self.datacollector = DataCollector(model_reporters = 
             {"Households": lambda m: m.schedule.get_breed_count(Household),
              "Settlements": lambda m: m.schedule.get_breed_count(Settlement),
              "Total Grain": lambda m: m.totalGrain,
              "Total Population": lambda m: m.totalPopulation,
              "Projected Hisorical Poulation": lambda m: m.projectedHistoricalPopulation,
-             # "Settlement Population": lambda m: m.schedule.agents_by_breed[Settlement].population # This is difficult, might need to make a custom datacollector for this
-             "Gini-Index": compute_gini
-            }#, 
-            # agent_reporters = 
-            # {"Settlement Population": lambda a: a.population if type(a) == Settlement else None}
-            )
+             "Gini-Index": gini,
+             "Maximum Settlement Population": maxSetPop,
+             "Minimum Settlement Population": minSetPop,
+             "Mean Settlement Poulation" : meanSetPop,
+             "Maximum Household Population": maxHPop,
+             "Minimum Household Population": minHPop,
+             "Mean Household Poulation" : meanHPop
+            })
 
-        # self.datacollector = DataCollector(model_reporters={"Total Grain": lambda m: m.totalGrain})
 
         self.setup()
         self.running = True

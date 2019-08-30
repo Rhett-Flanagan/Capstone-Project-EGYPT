@@ -1,4 +1,5 @@
 import unittest
+import math
 
 from src.agents import Field, Settlement, River
 from src.model import EgyptSim
@@ -78,12 +79,7 @@ class TestSetupMethods(unittest.TestCase):
                 agent_keys = list(dict[agent_class].keys())
                 for key in agent_keys:
                     pos = dict[agent_class][key].pos
-
-                    print(pos)
                     lst = self.sim.grid.get_neighbors(pos = pos, moore = True, include_center = False, radius = self.sim.knowledgeRadius)
-                    for n in lst:
-                        print(n.pos, type(n).__name__)
-                    print()
                 self.assertEqual(len(list(dict[agent_class])), 4)  # Should be 4 Households
 
         self.assertTrue(f)  # Field is in the dictionary
@@ -95,19 +91,17 @@ class TestSetupMethods(unittest.TestCase):
         self.assertEqual(self.sim.totalGrain, self.sim.startingSettlements * self.sim.startingHouseholds * self.sim.startingGrain)  # Grain calculation was correctly done
         self.assertEqual(self.sim.totalPopulation, self.sim.startingSettlements * self.sim.startingHouseholds * self.sim.startingHouseholdSize) # Population was correctly setup
 
-    def testClaimLogic(self):
-        """Test that farm operates correctly"""
+    def testFloodSetup(self):
+        """Test that floodSetup generates correct values"""
+        self.sim.setupFlood()
+        alpha = (2 * self.sim.sigma ** 2)
+        beta = 1 / (self.sim.sigma * math.sqrt(2 * math.pi))
+        # Use almostEqual because float calulations can be dodgy
+        self.assertAlmostEqual(alpha, self.sim.alpha)
+        self.assertAlmostEqual(beta, self.sim.beta)
+
         
 
-class TestAgentLogic(unittest.TestCase):
-    sim = EgyptSim(height=5, width=5, timeSpan=10, startingSettlements=2, startingHouseholds=2,
-                   startingHouseholdSize=2, startingGrain=5000, minAmbition=0.5, minCompetency=0.1,
-                   generationalVariation=0.7, knowledgeRadius=2, distanceCost=10, fallowLimit=1,
-                   popGrowthRate=0.2, fission=False, fissionChance=0.5, rental=False, rentalRate=0.1)
-
-    
-    def testConsumeGrain(self):
-        """Test that the grain is consumed (reduced) correctly """
         
 
 
