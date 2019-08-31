@@ -73,9 +73,11 @@ def portrayal(agent):
         portrayal["Color"] = "Blue"
     elif type(agent) is Settlement:
         portrayal["Shape"] = "circle"
-        portrayal["Color"] = "Black"
+        portrayal["Color"] = agent.color
+        #portrayal["text"] = (agent.uid + str(agent.population)) # Cant make this transparent so it only appears on tooltip
         portrayal["Filled"] = "true"
         portrayal["Layer"] = 1
+        # Set size according to population
         if agent.population > 150:
             portrayal["r"] = 2
         elif agent.population > 100 and agent.population < 150:
@@ -89,26 +91,26 @@ def portrayal(agent):
 
 
 # List to display settlments in graph
-SETDICT = {"Set 1": "#F08080",
-           "Set 2": "#FF4500",
-           "Set 3": "#FFFF00",
-           "Set 4": "#FF8C00",
-           "Set 5": "#7CFC00",
-           "Set 6": "#006400",
-           "Set 7": "#808000",
-           "Set 8": "#00FFFF",
-           "Set 9": "#008080",
-           "Set 10": "#0000FF",
-           "Set 11": "#FF00FF",
-           "Set 12": "#FF69B4",
-           "Set 13": "#000000",
-           "Set 14": "#800000",
-           "Set 15": "#BC8F8F",
-           "Set 16": "#D2691E",
-           "Set 17": "#8B4513",
-           "Set 18": "#800080",
-           "Set 19": "#4B0082",
-           "Set 20": "#2E8B57"}
+SETDICT = {"s1": "#F08080",
+           "s2": "#FF4500",
+           "s3": "#FFFF00",
+           "s4": "#FF8C00",
+           "s5": "#7CFC00",
+           "s6": "#006400",
+           "s7": "#808000",
+           "s8": "#00FFFF",
+           "s9": "#008080",
+           "s10": "#0000FF",
+           "s11": "#FF00FF",
+           "s12": "#FF69B4",
+           "s13": "#000000",
+           "s14": "#800000",
+           "s15": "#BC8F8F",
+           "s16": "#D2691E",
+           "s17": "#8B4513",
+           "s18": "#800080",
+           "s19": "#4B0082",
+           "s20": "#2E8B57"}
 
 # Grid element for rendering
 grid = CanvasGrid(portrayal, 30, 30, 600, 600)

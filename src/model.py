@@ -25,7 +25,7 @@ def gini(model):
     B = sum(xi * (N - i) for i, xi in enumerate(x)) / (N * sum(x))
     # Avoid divide by 0 errors
     if N != 0:
-        return (1 + (1 / N) - 2 * B)
+        return round((1 + (1 / N) - 2 * B), 2)
     else:
         return 0
 
@@ -51,7 +51,7 @@ def meanSetPop(model):
     for settlement in settlements:
         meanPop += settlement.population
     if model.schedule.get_breed_count(Settlement) != 0:
-        return meanPop/model.schedule.get_breed_count(Settlement)
+        return round(meanPop/model.schedule.get_breed_count(Settlement), 2)
     else:
         return 0
 
@@ -77,7 +77,7 @@ def meanHPop(model):
     for household in households:
         meanPop += household.workers
     if model.schedule.get_breed_count(Household) != 0:
-        return meanPop/model.schedule.get_breed_count(Household)
+        return round(meanPop/model.schedule.get_breed_count(Household), 2)
     else:
         return 0
 
@@ -151,6 +151,28 @@ class EgyptSim(Model):
 
     # Visualisation
     description = "A model simulating wealth growth and distribution in Ancient Egypt.\n\nThe model allows one to see how variables such as the flooding of the Nile, human character traits and random chance effect the acquisition and distribution of wealth."
+
+    # List of identifiers and colors for settlements
+    SETDICT = {"s1": "#FF0000",
+               "s2": "#FF4500",
+               "s3": "#BC8F8F",
+               "s4": "#00FF00",
+               "s5": "#00FFFF",
+               "s6": "#0000FF",
+               "s7": "#FF00FF",
+               "s8": "#FF1493",
+               "s9": "#708090",
+               "s10": "#DC143C",
+               "s11": "#FF8C00",
+               "s12": "#FF69B4",
+               "s13": "#800000",
+               "s14": "#7CFC00",
+               "s15": "#008B8B",
+               "s16": "#483D8B",
+               "s17": "#4B0082",
+               "s18": "#FF69B4",
+               "s19": "#000000",
+               "s20": "#8B4513"}
 
     def __init__(self, height: int = 30, width: int = 30, timeSpan: int = 500,
                  startingSettlements: int = 14, startingHouseholds: int = 7,
@@ -279,7 +301,8 @@ class EgyptSim(Model):
 
             # Add settlement to the grid
             population = self.startingHouseholds * self.startingHouseholdSize
-            settlement = Settlement(self.next_id(), self, (x, y), population, self.startingHouseholds)
+            uid = "s" + str(i + 1)
+            settlement = Settlement(self.next_id(), self, (x, y), population, self.startingHouseholds, uid, self.SETDICT[uid])
             self.grid.place_agent(settlement, (x, y))
 
             # Set the surrounding fields as territory
