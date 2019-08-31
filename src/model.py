@@ -121,7 +121,7 @@ class EgyptSim(Model):
                  startingHouseholdSize: int = 5, startingGrain: int = 3000,
                  minAmbition: float = 0.1, minCompetency: float = 0.5,
                  generationalVariation: float = 0.9, knowledgeRadius: int = 20,
-                 distanceCost: int = 10, fallowLimit: int = 4, popGrowthRate: float = 0.1,
+                 distanceCost: int = 10, fallowLimit: int = 4, popGrowthRate: float = 0.001,
                  fission: bool = False, fissionChance: float = 0.7, rental: bool = False,
                  rentalRate: float = 0.5):
         """
@@ -272,7 +272,7 @@ class EgyptSim(Model):
         self.currentTime += 1
         self.setupFlood()
         self.schedule.step()
-        self.projectedHistoricalPopulation = self.startingPopulation * ((1.001) ** self.currentTime)
+        self.projectedHistoricalPopulation = round(self.startingPopulation * ((1.001) ** self.currentTime))
         self.datacollector.collect(self)
         if self.currentTime >= self.timeSpan: # Cease running once time limit is hit
             self.running = False

@@ -10,11 +10,6 @@ max = 1.36  # Max Fertility Value = The man, the myth, the legendary Rhett worke
 def rgb_to_hex(rgb):
     return '#%02x%02x%02x' % rgb
 
-            # const RGB_Log_Shade=(p,c)=>{
-            #     var i=parseInt,r=Math.round,[a,b,c,d]=c.split(","),P=p<0,t=P?0:p*255**2,P=P?1+p:1-p;
-            #     return"rgb"+(d?"a(":"(")+r((P*i(a[3]=="a"?a.slice(5):a.slice(4))**2+t)**0.5)+","+r((P*i(b)**2+t)**0.5)+","+r((P*i(c)**2+t)**0.5)+(d?","+d:")");
-            # }
-
 def shade(percent):
     r = 255 - round(255 * percent) # Difference between yellow and dark green on red channel
     g = 255 - round(176 * percent) # Difference between yellow and dark green on green channel
@@ -37,8 +32,7 @@ def portrayal(agent):
         fertilityValue = agent.fertility
         # Inverse for the  RGB Scale (0 - 255)
         #inverseFertilityValue = max - fertilityValue
-        percent = fertilityValue/max
-        portrayal["Color"] = rgb_to_hex(shade(percent))
+        portrayal["Color"] = rgb_to_hex(shade(fertilityValue/max))
         # More fertile = Lower Value for R, More Prominent Green
         # Should return value between 0 (if fertility == max) and 255 (if fertility == 0)
         #rValue = round(inverseFertilityValue * (255 / max))
