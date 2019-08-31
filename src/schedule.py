@@ -151,19 +151,29 @@ class EgyptSchedule(RandomActivation):
         Args:
             breed: Class object of the breed to run.
         """
-        # Sorting functor
+        # Sorting functors
         def wealth(key):
             return self.agents_by_breed[breed][key].grain
 
+        def ambition(key):
+            return self.agents_by_breed[breed][key].ambition
+
+        allFields = [] # List of farms for rental puropses
+
         agent_keys = list(self.agents_by_breed[breed].keys())
-        # self.model.random.shuffle(agent_keys)
+        
 
         agent_keys.sort(key = wealth) # Sort agents on wealth as in NetLogo ver. Simulates the increased "buying power" of the more wealthy households.
         for agent_key in agent_keys:
             self.agents_by_breed[breed][agent_key].stepFarm()
+            allFields += self.agents_by_breed[breed][agent_key].fields
+
+        # Sort agents on ambition, rewarding agents for being ambitions if they choose to rent and renting is enabled
+        if self.model.rental:
+            agent_keys.sort(key = ambition) 
 
         for agent_key in agent_keys:
-            self.agents_by_breed[breed][agent_key].stepRentConsumeChangeover()
+            self.agents_by_breed[breed][agent_key].stepRentConsumeChangeover(allFields)
 
     def get_breed_count(self, breed_class):
         """

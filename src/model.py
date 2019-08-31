@@ -23,7 +23,11 @@ def gini(model):
         x.append(agent.grain)
     N = model.schedule.get_breed_count(Household)
     B = sum(xi * (N - i) for i, xi in enumerate(x)) / (N * sum(x))
-    return (1 + (1 / N) - 2 * B)
+    # Avoid divide by 0 errors
+    if N != 0:
+        return (1 + (1 / N) - 2 * B)
+    else:
+        return 0
 
 def minSetPop(model):
     settlements = model.schedule.get_breed(Settlement)
@@ -46,7 +50,10 @@ def meanSetPop(model):
     meanPop = 0
     for settlement in settlements:
         meanPop += settlement.population
-    return meanPop/model.schedule.get_breed_count(Settlement)
+    if model.schedule.get_breed_count(Settlement) != 0:
+        return meanPop/model.schedule.get_breed_count(Settlement)
+    else:
+        return 0
 
 def minHPop(model):
     households = model.schedule.get_breed(Household)
@@ -69,7 +76,10 @@ def meanHPop(model):
     meanPop = 0
     for household in households:
         meanPop += household.workers
-    return meanPop/model.schedule.get_breed_count(Household)
+    if model.schedule.get_breed_count(Household) != 0:
+        return meanPop/model.schedule.get_breed_count(Household)
+    else:
+        return 0
 
 
 def lowerThridGrainHoldings(model):
@@ -304,7 +314,8 @@ class EgyptSim(Model):
         self.schedule.step()
         self.projectedHistoricalPopulation = self.startingPopulation * ((1.001) ** self.currentTime)
         self.datacollector.collect(self)
-        if self.currentTime >= self.timeSpan: # Cease running once time limit is hit
+        # Cease running once time limit is reached or everyone is dead
+        if self.currentTime >= self.timeSpan or self.totalPopulation == 0: 
             self.running = False
 
     def setupFlood(self):

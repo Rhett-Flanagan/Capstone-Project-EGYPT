@@ -14,7 +14,7 @@ def rgb_to_hex(rgb):
 def shade(percent):
     r = 255 - round(255 * percent) # Difference between yellow and dark green on red channel
     g = 255 - round(176 * percent) # Difference between yellow and dark green on green channel
-    b = round(28 * percent) # Difference between yellow and dark green on blue channel
+    b = 102 - round(74 * percent) # Difference between yellow and dark green on blue channel
     return (r, g, b)
 
 

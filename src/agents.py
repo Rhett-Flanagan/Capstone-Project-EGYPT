@@ -199,85 +199,61 @@ class Household(Agent):
                     self.fieldsOwned += 1
                     self.fields.append(bestField)
 
-    def farm(self):
+    def farm(self, fields):
         totalHarvest = 0
         maxYield = 2475
-        self.workersWorked = 0
-        self.fieldsHarvested = 0
+        loops = ((self.workers - self.workersWorked)// 2) # Protection against loop breaking with changes
+        
+        # Sorting functor
+        def fert(field):
+            return field.fertility
 
-        for i in range(self.workers // 2):
+        fields.sort(key = fert) # Sort fields on fertility so save loop iterations
+
+        for i in range(loops):
             # Determine best field
-            bestHarvest = 0
-            bestField = None
-            for f in self.fields:
+            # bestHarvest = 0
+            # bestField = None
+            # Optimised looping through fields from NetLogo, saves several loop cycles and calculations 
+            for f in fields:
                 if not f.harvested:
                     harvest = (int(f.fertility * maxYield * self.competency) - 
                               (((abs(self.pos[0]) - f.pos[0]) + 
                                  abs(self.pos[1] - f.pos[1])) * 
                                  self.model.distanceCost))
-                    if harvest > bestHarvest:
-                        bestHarvest = harvest
-                        bestField = f
-            # Farm best field
-            chance = np.random.uniform(0, 1)
-            if ((self.grain > (self.workers * 160)) or (chance < self.ambition * self.competency)) and (
-                    bestField is not None):
-                bestField.harvested = True
-                totalHarvest += bestHarvest - 300  # -300 for planting
-                self.workersWorked += 2
+                    chance = np.random.uniform(0, 1)
+                    if (((self.grain > (self.workers * 160)) or (chance < self.ambition * self.competency)) 
+                        and (f is not None)):
+                        f.harvested = True
+                        totalHarvest += harvest - 300  # -300 for planting
+                        self.workersWorked += 2
+                    break # Stop looping through fields after choosing the best and taking the farm chance
+            #         if harvest > bestHarvest:
+            #             bestHarvest = harvest
+            #             bestField = f
+            # # Farm best field
+            # chance = np.random.uniform(0, 1)
+            # if ((self.grain > (self.workers * 160)) or (chance < self.ambition * self.competency)) and (
+            #         bestField is not None):
+            #     bestField.harvested = True
+            #     totalHarvest += bestHarvest - 300  # -300 for planting
+            #     self.workersWorked += 2
         # Complete farming    
         self.grain += totalHarvest
         self.model.totalGrain += totalHarvest
 
-    def rent(self):
+    def rent(self, fields):
         """
         This method allows more ambition and competent households to farm the unharvested fields owned by other households.
         """
         # Functor to get the ambition of an agent for sorting
-        def ambition(agent):
-            return agent.ambition
 
         # Checks to see if rental is allowed
         if(self.model.rental == True):
             # Gets a list of the households and sorts by ambition level
-            agents = self.model.schedule.get_breed(Household)
-            agents.sort(key = ambition)
-
-            totalHarvest = 0
-            maxYield = 2475
-            
-            # Creates an array of all farms owned by households.
-            allfarms = []
-            for agent in agents:
-                allfarms = allfarms + agent.fields
-
-            #loops through all households
-            for agent in agents:
-                for i in range((agent.workers - agent.workersWorked)// 2):
-                    # Determine best field
-                    bestHarvest = 0
-                    bestField = None
-                    for a in allfarms:
-                        if not a.harvested:
-                            harvest = (int(a.fertility * maxYield * agent.competency) - 
-                                    (((abs(agent.pos[0]) - a.pos[0]) + 
-                                        abs(agent.pos[1] - a.pos[1])) * 
-                                        agent.model.distanceCost))
-                            if harvest > bestHarvest:
-                                bestHarvest = harvest
-                                bestField = a
-                    # Farm best field
-                    chance = np.random.uniform(0, 1)
-                    if ((agent.grain > (agent.workers * 160)) or (chance < agent.ambition * agent.competency)) and (
-                            bestField is not None):
-                        bestField.harvested = True
-                        print("HI we are renting")
-                        totalHarvest += bestHarvest - 300  # -300 for planting
-                        agent.workersWorked += 2
-                # Complete farming    
-                agent.grain += totalHarvest
-                agent.model.totalGrain += totalHarvest
-
+            self.farm(fields)
+           
+    
     def consumeGrain(self):
         """
         This method allows households to consume grain based on the number of workers they have.
@@ -322,11 +298,7 @@ class Household(Agent):
         if (self.model.totalPopulation <= (startingPopulation*((1 + self.model.popGrowthRate/100)**self.model.currentTime)) and (populateChance > 0.5)):
             self.workers += 1
             self.settlement.population += 1
-            self.model.totalPopulation = self.model.totalPopulation + self.workers   ##### NEED TO CONFIRM THIS
-        
-        
-
-        
+            self.model.totalPopulation = self.model.totalPopulation + self.workers   ##### NEED TO CONFIRM THIS  
 
     def genChangeover(self):
         """
@@ -413,21 +385,27 @@ class Household(Agent):
         """
         The actions to take on a general step sequence
         """
+        self.workersWorked = 0
+        self.fieldsHarvested = 0
         self.claimFields()
-        self.farm()
+        self.farm(self.fields)
 
     def stepFarm(self):
         """
         Calls the farming methods for the initial run of households in the scheduler
         """
+        # Reset parameters
+        self.workersWorked = 0
+        self.fieldsHarvested = 0
+
         self.claimFields()
-        self.farm()
+        self.farm(self.fields)
     
-    def stepRentConsumeChangeover(self):
+    def stepRentConsumeChangeover(self, fields):
         """
         Calls the renting, aging, changeover and methods
         """
-        self.rent()
+        self.rent(fields)
         self.consumeGrain()
         self.storageLoss()
         self.fieldChangeover()
