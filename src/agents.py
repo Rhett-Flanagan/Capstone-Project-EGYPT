@@ -129,6 +129,9 @@ class Settlement(Tile):
 
     def step(self):
         self.fission()
+        if self.population == 0:
+            self.model.schedule.remove(self)
+            self.model.grid.remove_agent(self)
 
 
 class Household(Agent):
@@ -148,6 +151,7 @@ class Household(Agent):
     fieldsOwned = 0
     fieldsHarvested = 0
     fields = []
+    farms = []
 
     def __init__(self, unique_id: int, model, settlement: Settlement, pos: tuple, grain: int,
                  workers: int, ambition: float, competency: float,
@@ -173,6 +177,8 @@ class Household(Agent):
         self.fieldsOwned = 0
         self.fieldsHarvested = 0
         self.fields = []
+        # For visualisation
+        self.farms = []
 
     def claimFields(self):
         """
@@ -185,7 +191,7 @@ class Household(Agent):
             bestField = None
 
             # Iterate through fields on the grid
-            neighbours = self.model.grid.get_neighbors(pos = self.pos,moore = True, include_center =  False, radius = self.model.knowledgeRadius)
+            neighbours = self.model.grid.get_neighbors(pos = self.pos, moore = False, include_center =  False, radius = self.model.knowledgeRadius)
             for a in neighbours:
                 if (a.fertility > bestFertility and type(a).__name__ == "Field"
                         and a.owned == False and a.settlementTerritory == False):
@@ -415,7 +421,13 @@ class Household(Agent):
         self.fieldChangeover()
         self.genChangeover()
         self.populationShift()
+        # self.updateFarms()
 
         # Update grain max for datacollector
         if self.grain > self.model.maxHouseholdGrain:
             self.model.maxHouseholdGrain = self.grain
+
+# class Farm(Tile):
+#     """Farm object for visualsiation purposes"""
+
+#     def __init__(self, unique_id: int, model, pos: tuple, color: str):
