@@ -71,6 +71,31 @@ def meanHPop(model):
         meanPop += household.workers
     return meanPop/model.schedule.get_breed_count(Household)
 
+
+def lowerThridGrainHoldings(model):
+    households = model.schedule.get_breed(Household)
+    count = 0
+    for household in households:
+        if household.grain < (model.maxHouseholdGrain / 3):
+            count += 1
+    return count
+
+def middleThridGrainHoldings(model):
+    households = model.schedule.get_breed(Household)
+    count = 0
+    for household in households:
+        if ((household.grain > (model.maxHouseholdGrain / 3)) and (household.grain < ( 2 * model.maxHouseholdGrain / 3))):
+            count += 1
+    return count
+
+def upperThridGrainHoldings(model):
+    households = model.schedule.get_breed(Household)
+    count = 0
+    for household in households:
+        if household.grain > ( 2 * model.maxHouseholdGrain / 3):
+            count += 1
+    return count
+
 class EgyptSim(Model):
     """
     Simulation Model for wealth distribution represented by grain in ancient Egypt
@@ -103,6 +128,7 @@ class EgyptSim(Model):
     totalPopulation = 0
     startingPopulation = 0
     projectedHistoricalPopulation = 0
+    maxHouseholdGrain = 0
 
     # Step variables
     mu = 0
@@ -121,7 +147,7 @@ class EgyptSim(Model):
                  startingHouseholdSize: int = 5, startingGrain: int = 3000,
                  minAmbition: float = 0.1, minCompetency: float = 0.5,
                  generationalVariation: float = 0.9, knowledgeRadius: int = 20,
-                 distanceCost: int = 10, fallowLimit: int = 4, popGrowthRate: float = 0.001,
+                 distanceCost: int = 10, fallowLimit: int = 4, popGrowthRate: float = 0.1,
                  fission: bool = False, fissionChance: float = 0.7, rental: bool = False,
                  rentalRate: float = 0.5):
         """
@@ -174,7 +200,7 @@ class EgyptSim(Model):
         self.totalPopulation = startingSettlements * startingHouseholds * startingHouseholdSize
         self.startingPopulation = self.totalPopulation
         self.projectedHistoricalPopulation = self.startingPopulation
-
+        self.maxHouseholdGrain = 0
         self.schedule = EgyptSchedule(self)
         self.grid = MultiGrid(self.height, self.width, torus=False)
         # Overarching datacollector features, specific agent level features need to be done seperately because they are not propperly handled in the code
@@ -190,7 +216,10 @@ class EgyptSim(Model):
              "Mean Settlement Poulation" : meanSetPop,
              "Maximum Household Population": maxHPop,
              "Minimum Household Population": minHPop,
-             "Mean Household Poulation" : meanHPop
+             "Mean Household Poulation" : meanHPop,
+             "< 33%": lowerThridGrainHoldings,
+             "33 - 66%": middleThridGrainHoldings,
+             "> 66%": upperThridGrainHoldings 
             })
 
 
@@ -270,9 +299,10 @@ class EgyptSim(Model):
 
     def step(self):
         self.currentTime += 1
+        self.maxHouseholdGrain = 0
         self.setupFlood()
         self.schedule.step()
-        self.projectedHistoricalPopulation = round(self.startingPopulation * ((1.001) ** self.currentTime))
+        self.projectedHistoricalPopulation = self.startingPopulation * ((1.001) ** self.currentTime)
         self.datacollector.collect(self)
         if self.currentTime >= self.timeSpan: # Cease running once time limit is hit
             self.running = False

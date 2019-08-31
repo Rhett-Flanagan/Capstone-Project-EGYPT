@@ -101,7 +101,7 @@ class Household:
 
 
     def rent(self):
-        
+        pass
 
 
     def consumeGrain(self):

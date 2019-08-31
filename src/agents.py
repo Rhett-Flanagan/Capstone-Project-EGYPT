@@ -211,7 +211,7 @@ class Household(Agent):
             bestField = None
             for f in self.fields:
                 if not f.harvested:
-                    harvest = (round(f.fertility * maxYield * self.competency) - 
+                    harvest = (int(f.fertility * maxYield * self.competency) - 
                               (((abs(self.pos[0]) - f.pos[0]) + 
                                  abs(self.pos[1] - f.pos[1])) * 
                                  self.model.distanceCost))
@@ -308,8 +308,8 @@ class Household(Agent):
         """
         This method removes grain from the households total to account for typical annual storage loss of agricultural product
         """
-        self.model.totalGrain -= intint(self.grain * 0.1) # Prevent grain going to a float because unrestricted types
-        self.grain -= round(self.grain*0.1)
+        self.model.totalGrain -= int(self.grain * 0.1) # Prevent grain going to a float because unrestricted types
+        self.grain -= int(self.grain*0.1)
 
     def populationShift(self):
         """
@@ -322,7 +322,7 @@ class Household(Agent):
         if (self.model.totalPopulation <= (startingPopulation*((1 + self.model.popGrowthRate/100)**self.model.currentTime)) and (populateChance > 0.5)):
             self.workers += 1
             self.settlement.population += 1
-            self.model.totalPopulation += self.workers
+            self.model.totalPopulation = self.model.totalPopulation + self.workers   ##### NEED TO CONFIRM THIS
         
         
 
@@ -433,3 +433,7 @@ class Household(Agent):
         self.fieldChangeover()
         self.genChangeover()
         self.populationShift()
+
+        # Update grain max for datacollector
+        if self.grain > self.model.maxHouseholdGrain:
+            self.model.maxHouseholdGrain = self.grain

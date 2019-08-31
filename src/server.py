@@ -33,6 +33,9 @@ def portrayal(agent):
         fertilityValue = agent.fertility
         # Inverse for the  RGB Scale (0 - 255)
         #inverseFertilityValue = max - fertilityValue
+        # if agent.owned:
+        #     portrayal["Color"] = "Purple"
+        # else:
         portrayal["Color"] = rgb_to_hex(shade(fertilityValue/max))
         # More fertile = Lower Value for R, More Prominent Green
         # Should return value between 0 (if fertility == max) and 255 (if fertility == 0)
@@ -123,14 +126,17 @@ minMaxMeanSetPopChart = ChartModule([{"Label": "Minimum Settlement Population", 
 minMaxMeanHPopChart = ChartModule([{"Label": "Minimum Household Population", "Color": "Blue"},
                                    {"Label": "Maximum Household Population", "Color": "Red"}, 
                                    {"Label": "Mean Household Poulation", "Color": "Black"}])
+grainHoldingChart = ChartModule([{"Label": "< 33%", "Color": "Yellow"},
+                                 {"Label": "33 - 66%", "Color": "Blue"},
+                                 {"Label": "> 66%", "Color": "Purple"}])
 
-elements = [grid,
+elements = [grid, # Grid
             totalGrainChart, totalPopulationChart, settlementsHouseholdsChart, giniChart, minMaxMeanSetPopChart,
-            minMaxMeanHPopChart]
+            minMaxMeanHPopChart, grainHoldingChart]
 
 model_params = {"height": 30, 
                 "width": 30,
-                "infoText": UserSettableParameter('static_text', value = "After changing any of the starting settings for the simulation please click Reset in order for these changes to take effect. Please enjoy our MODEL BITCHES!!!"),
+                "infoText": UserSettableParameter('static_text', value = "After changing any of the starting settings for the simulation please click Reset in order for these changes to take effect."),
                 "timeSpan": UserSettableParameter('slider', 'Model Time Span', 500, 100, 500, 25),
                 "startingSettlements": UserSettableParameter('slider', 'Starting Settlements', 14, 5, 20),
                 "startingHouseholds": UserSettableParameter('slider', 'Starting Households', 7, 1, 10),
@@ -150,4 +156,3 @@ model_params = {"height": 30,
 server = ModularServer(EgyptSim, elements, "Egypt Sim", model_params)
 
 server.port = 8521
-# server.launch()
