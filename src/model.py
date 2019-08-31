@@ -114,7 +114,7 @@ class EgyptSim(Model):
     verbose = False
 
     # Visualisation
-    description = "A model simulating wealth growth and distribution in Ancient Egypt"
+    description = "A model simulating wealth growth and distribution in Ancient Egypt.\n\nThe model allows one to see how variables such as the flooding of the Nile, human character traits and random chance effect the acquisition and distribution of wealth."
 
     def __init__(self, height: int = 30, width: int = 30, timeSpan: int = 500,
                  startingSettlements: int = 14, startingHouseholds: int = 7,
