@@ -2,7 +2,7 @@ from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import CanvasGrid, ChartModule
 from mesa.visualization.UserParam import UserSettableParameter
 
-from src.agents import River, Field, Settlement
+from src.agents import River, Field, Settlement, Farm
 from src.model import EgyptSim
 
 max = 1.36  # Max Fertility Value = The man, the myth, the legendary Rhett worked this out using really slow and manual machine learning
@@ -31,39 +31,7 @@ def portrayal(agent):
         portrayal["w"] = 1
         portrayal["h"] = 1
         fertilityValue = agent.fertility
-        # Inverse for the  RGB Scale (0 - 255)
-        #inverseFertilityValue = max - fertilityValue
-        # if agent.owned:
-        #     portrayal["Color"] = "Purple"
-        # else:
         portrayal["Color"] = rgb_to_hex(shade(fertilityValue/max))
-        # More fertile = Lower Value for R, More Prominent Green
-        # Should return value between 0 (if fertility == max) and 255 (if fertility == 0)
-        #rValue = round(inverseFertilityValue * (255 / max))
-        # if fertilityValue <= max / 4:
-        #     # Minimum (0) - Lower Quartile
-        #     # Least Fertile - Yellow
-        #     hexValue = rgb_to_hex((rValue, 240, 0))
-        #     portrayal["Color"] = [hexValue]
-        # elif fertilityValue <= max / 2:
-        #     # Lower Quartile - Median
-        #     # Less Fertile - Lighter Green
-        #     hexValue = rgb_to_hex((rValue, 220, 0))
-        #     portrayal["Color"] = [hexValue]
-        # elif fertilityValue <= max * 3 / 4:
-        #     # Median - Upper Quartile
-        #     # More Fertile - Darker Green
-        #     hexValue = rgb_to_hex((rValue, 200, 0))
-        #     portrayal["Color"] = [hexValue]
-        # else:
-        #     # Upper Quartile - Maximum (1.36)
-        #     # Most Fertile - Dark Green
-        #     hexValue = rgb_to_hex((rValue, 180, 0))
-        #     # print(hexValue)
-        #     portrayal["Color"] = [hexValue]
-
-
-
     elif type(agent) is River:
         portrayal["Shape"] = "rect"
         portrayal["Filled"] = "true"
@@ -86,6 +54,24 @@ def portrayal(agent):
             portrayal["r"] = 1
         else:
             portrayal["r"] = 0.5
+    elif type(agent) is Farm:
+        if agent.farmed:
+            portrayal["Shape"] = "rect"
+            portrayal["w"] = 0.5
+            portrayal["h"] = 0.5
+        else:
+            portrayal["Shape"] = "rect"
+            portrayal["w"] = 0.25
+            portrayal["h"] = 0.25
+            # portrayal["Shape"] = "circle"
+            # portrayal["r"] = 0.25
+            # portrayal["Shape"] = "rect"
+            # portrayal["w"] = 0.5
+            # portrayal["h"] = 0.5
+        portrayal["Color"] = agent.color
+        portrayal["Layer"] = 1
+        portrayal["Filled"] = "true"
+        
 
     return portrayal
 
@@ -125,12 +111,12 @@ giniChart = ChartModule([{"Label": "Gini-Index", "Color": "Black"}])
 minMaxMeanSetPopChart = ChartModule([{"Label": "Minimum Settlement Population", "Color": "Blue"}, 
                                      {"Label": "Maximum Settlement Population", "Color": "Red"}, 
                                      {"Label": "Mean Settlement Poulation", "Color": "Black"}])
-minMaxMeanHPopChart = ChartModule([{"Label": "Minimum Household Population", "Color": "Blue"},
-                                   {"Label": "Maximum Household Population", "Color": "Red"}, 
-                                   {"Label": "Mean Household Poulation", "Color": "Black"}])
-grainHoldingChart = ChartModule([{"Label": "< 33%", "Color": "Yellow"},
-                                 {"Label": "33 - 66%", "Color": "Blue"},
-                                 {"Label": "> 66%", "Color": "Purple"}])
+minMaxMeanHPopChart = ChartModule([{"Label": "Minimum Household Wealth", "Color": "Blue"},
+                                   {"Label": "Maximum Household Wealth", "Color": "Red"}, 
+                                   {"Label": "Mean Household Wealth", "Color": "Black"}])
+grainHoldingChart = ChartModule([{"Label": "Number of households with < 33% of wealthiest grain holding", "Color": "Yellow"},
+                                 {"Label": "Number of households with 33 - 66%  of wealthiest grain holding", "Color": "Blue"},
+                                 {"Label": "Number of households with > 66% of wealthiest grain holding", "Color": "Purple"}])
 
 elements = [grid, # Grid
             totalGrainChart, totalPopulationChart, settlementsHouseholdsChart, giniChart, minMaxMeanSetPopChart,
@@ -149,10 +135,11 @@ model_params = {"height": 30,
                 "generationalVariation": UserSettableParameter('slider', 'Generational Variation', 0.9, 0.0, 1.0, 0.1),
                 "knowledgeRadius": UserSettableParameter('slider', 'Knowledge Radius', 20, 5, 40, 5),
                 "distanceCost": UserSettableParameter('slider', 'Distance Cost (in kg)', 10, 1, 15),
-                "fallowLimit": UserSettableParameter('slider', 'Population Growth Rate (in %)', 0.010, 0.00, 0.050, 0.001),
+                "fallowLimit": UserSettableParameter('slider', "Fallow Limit in Years", 4, 0, 10),
+                "popGrowthRate": UserSettableParameter('slider', 'Population Growth Rate (in %)', 0.010, 0.00, 0.050, 0.001),
                 "fission": UserSettableParameter('checkbox', 'Allow Household Fission?', value=False),
                 "fissionChance": UserSettableParameter('slider', 'Minimum Fission Chance', 0.7, 0.5, 0.9, 0.1),
-                "rental": UserSettableParameter('checkbox', 'Allow Land Rental?', value=False),
+                "rental": UserSettableParameter('checkbox', 'Allow Land Rental?', value=True),
                 "rentalRate": UserSettableParameter('slider', 'Land Rental Rate', 0.5, 0.3, 0.6, 0.05)}
 
 server = ModularServer(EgyptSim, elements, "Egypt Sim", model_params)

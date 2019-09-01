@@ -21,7 +21,6 @@ class Tile(Agent):
     fertility = 0.0
     settlementTerritory = False
     owned = False
-    color = None
 
     def __init__(self, unique_id, model, pos: tuple):
         '''
@@ -151,7 +150,7 @@ class Household(Agent):
     fieldsOwned = 0
     fieldsHarvested = 0
     fields = []
-    farms = []
+    farms = {} # Dict of farms for visualisation purposes
 
     def __init__(self, unique_id: int, model, settlement: Settlement, pos: tuple, grain: int,
                  workers: int, ambition: float, competency: float,
@@ -178,7 +177,7 @@ class Household(Agent):
         self.fieldsHarvested = 0
         self.fields = []
         # For visualisation
-        self.farms = []
+        self.farms = {}
 
     def claimFields(self):
         """
@@ -209,6 +208,12 @@ class Household(Agent):
                     self.fieldsOwned += 1
                     self.fields.append(bestField)
 
+                    # Make farm for visualisation
+                    # if bestField.pos in self.farms:
+                    farm = Farm(self.model.next_id(), self.model, bestField.pos, self.settlement.color, False)
+                    self.model.grid.place_agent(farm, bestField.pos)
+                    self.farms[bestField.pos] = farm
+
     def farm(self, fields):
         totalHarvest = 0
         maxYield = 2475
@@ -238,16 +243,6 @@ class Household(Agent):
                         totalHarvest += harvest - 300  # -300 for planting
                         self.workersWorked += 2
                     break # Stop looping through fields after choosing the best and taking the farm chance
-            #         if harvest > bestHarvest:
-            #             bestHarvest = harvest
-            #             bestField = f
-            # # Farm best field
-            # chance = np.random.uniform(0, 1)
-            # if ((self.grain > (self.workers * 160)) or (chance < self.ambition * self.competency)) and (
-            #         bestField is not None):
-            #     bestField.harvested = True
-            #     totalHarvest += bestHarvest - 300  # -300 for planting
-            #     self.workersWorked += 2
         # Complete farming    
         self.grain += totalHarvest
         self.model.totalGrain += totalHarvest
@@ -261,8 +256,7 @@ class Household(Agent):
         # Checks to see if rental is allowed
         if(self.model.rental == True):
             # Gets a list of the households and sorts by ambition level
-            self.farm(fields)
-           
+            self.farm(fields)   
     
     def consumeGrain(self):
         """
@@ -276,6 +270,7 @@ class Household(Agent):
         
         # Decrement amount of workers if grain is less than or equal to zero (also impacts overall population numbers)
         if (self.grain <= 0):
+            self.model.totalGrain -= self.grain # Add back negative grain to prevent negatve grain in model and incorrect grain representation
             self.grain = 0
             self.workers -= 1
             self.settlement.population -= 1
@@ -294,8 +289,8 @@ class Household(Agent):
         """
         This method removes grain from the households total to account for typical annual storage loss of agricultural product
         """
-        self.model.totalGrain -= int(self.grain * 0.1) # Prevent grain going to a float because unrestricted types
-        self.grain -= int(self.grain*0.1)
+        self.model.totalGrain -= round(self.grain * 0.1) # Prevent grain going to a float because unrestricted types
+        self.grain -= round(self.grain*0.1)
 
     def populationShift(self):
         """
@@ -308,7 +303,7 @@ class Household(Agent):
         if (self.model.totalPopulation <= (startingPopulation*((1 + self.model.popGrowthRate/100)**self.model.currentTime)) and (populateChance > 0.5)):
             self.workers += 1
             self.settlement.population += 1
-            self.model.totalPopulation = self.model.totalPopulation + self.workers   ##### NEED TO CONFIRM THIS  
+            self.model.totalPopulation += 1   
 
     def genChangeover(self):
         """
@@ -373,11 +368,13 @@ class Household(Agent):
         
         # For loop to loop through all owned fields
         for i in range(len(self.fields)):
-            # If statement to check if a field has been harvested or not
+            # If statement to check if a field has been harvested or not, and set render values for the farms
             if (self.fields[i].harvested == True):
                 self.fields[i].yearsFallow = 0
+                self.farms[self.fields[i].pos].farmed = True
             else:
                 self.fields[i].yearsFallow += 1
+                self.farms[self.fields[i].pos].farmed = False
             
             # If statement to add fallowlimit exceeding fields to an array of fields to delete
             if (self.fields[i].yearsFallow >= self.model.fallowLimit): 
@@ -388,7 +385,9 @@ class Household(Agent):
 
         # For loop to remove all fallowlimit exceded fields from the Households ownership
         for i in toDel:
-            del self.fields[i]
+            self.model.grid.remove_agent(self.farms[self.fields[i].pos])# Remove the farm from the map
+            del self.farms[self.fields[i].pos] # Remove the farm from list
+            del self.fields[i] # Delete the field
 
 
     def step(self):
@@ -422,12 +421,19 @@ class Household(Agent):
         self.genChangeover()
         self.populationShift()
         # self.updateFarms()
-
+        # for farm in self.farms.items():
+        #     print(farm, farm[1].farmed)
         # Update grain max for datacollector
         if self.grain > self.model.maxHouseholdGrain:
             self.model.maxHouseholdGrain = self.grain
 
-# class Farm(Tile):
-#     """Farm object for visualsiation purposes"""
+class Farm(Tile):
+    """Farm stub object for visualsiation purposes"""
 
-#     def __init__(self, unique_id: int, model, pos: tuple, color: str):
+    color = ""
+    farmed = False
+
+    def __init__(self, unique_id: int, model, pos: tuple, color: str = "#FFFFFF", farmed: bool = False):
+        super().__init__(unique_id, model, pos)
+        self.color = color
+        self.farmed = farmed

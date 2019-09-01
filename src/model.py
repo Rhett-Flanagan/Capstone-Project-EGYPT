@@ -55,29 +55,29 @@ def meanSetPop(model):
     else:
         return 0
 
-def minHPop(model):
+def minHWealth(model):
     households = model.schedule.get_breed(Household)
-    minPop = float("inf") # Workaround of removal of sys.maxint
+    minWealth = float("inf") # Workaround of removal of sys.maxint
     for household in households:
-        if(minPop > household.workers):
-            minPop = household.workers
-    return minPop
+        if(minWealth > household.grain):
+            minWealth = household.grain
+    return minWealth
 
-def maxHPop(model):
+def maxHWealth(model):
     households = model.schedule.get_breed(Household)
-    maxPop = 0
+    maxWealth = 0
     for household in households:
-        if(maxPop < household.workers):
-            maxPop = household.workers
-    return maxPop
+        if(maxWealth < household.grain):
+            maxWealth = household.grain
+    return maxWealth
 
-def meanHPop(model):
+def meanHWealth(model):
     households = model.schedule.get_breed(Household)
-    meanPop = 0
+    meanWealth = 0
     for household in households:
-        meanPop += household.workers
+        meanWealth += household.grain
     if model.schedule.get_breed_count(Household) != 0:
-        return round(meanPop/model.schedule.get_breed_count(Household), 2)
+        return round(meanWealth/model.schedule.get_breed_count(Household), 2)
     else:
         return 0
 
@@ -233,6 +233,7 @@ class EgyptSim(Model):
         self.startingPopulation = self.totalPopulation
         self.projectedHistoricalPopulation = self.startingPopulation
         self.maxHouseholdGrain = 0
+
         self.schedule = EgyptSchedule(self)
         self.grid = MultiGrid(self.height, self.width, torus=False)
         # Overarching datacollector features, specific agent level features need to be done seperately because they are not propperly handled in the code
@@ -246,14 +247,13 @@ class EgyptSim(Model):
              "Maximum Settlement Population": maxSetPop,
              "Minimum Settlement Population": minSetPop,
              "Mean Settlement Poulation" : meanSetPop,
-             "Maximum Household Population": maxHPop,
-             "Minimum Household Population": minHPop,
-             "Mean Household Poulation" : meanHPop,
-             "< 33%": lowerThridGrainHoldings,
-             "33 - 66%": middleThridGrainHoldings,
-             "> 66%": upperThridGrainHoldings 
+             "Maximum Household Wealth": maxHWealth,
+             "Minimum Household Wealth": minHWealth,
+             "Mean Household Wealth" : meanHWealth,
+             "Number of households with < 33% of wealthiest grain holding": lowerThridGrainHoldings,
+             "Number of households with 33 - 66%  of wealthiest grain holding": middleThridGrainHoldings,
+             "Number of households with > 66% of wealthiest grain holding": upperThridGrainHoldings 
             })
-
 
         self.setup()
         self.running = True
@@ -335,7 +335,7 @@ class EgyptSim(Model):
         self.maxHouseholdGrain = 0
         self.setupFlood()
         self.schedule.step()
-        self.projectedHistoricalPopulation = self.startingPopulation * ((1.001) ** self.currentTime)
+        self.projectedHistoricalPopulation = round(self.startingPopulation * ((1.001) ** self.currentTime))
         self.datacollector.collect(self)
         # Cease running once time limit is reached or everyone is dead
         if self.currentTime >= self.timeSpan or self.totalPopulation == 0: 
