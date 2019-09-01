@@ -242,7 +242,7 @@ class EgyptSim(Model):
              "Settlements": lambda m: m.schedule.get_breed_count(Settlement),
              "Total Grain": lambda m: m.totalGrain,
              "Total Population": lambda m: m.totalPopulation,
-             "Projected Hisorical Poulation": lambda m: m.projectedHistoricalPopulation,
+             "Projected Hisorical Poulation (0.1% Growth)": lambda m: m.projectedHistoricalPopulation,
              "Gini-Index": gini,
              "Maximum Settlement Population": maxSetPop,
              "Minimum Settlement Population": minSetPop,

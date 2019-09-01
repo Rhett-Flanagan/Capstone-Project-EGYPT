@@ -209,7 +209,6 @@ class Household(Agent):
                     self.fields.append(bestField)
 
                     # Make farm for visualisation
-                    # if bestField.pos in self.farms:
                     farm = Farm(self.model.next_id(), self.model, bestField.pos, self.settlement.color, False)
                     self.model.grid.place_agent(farm, bestField.pos)
                     self.farms[bestField.pos] = farm
@@ -275,6 +274,7 @@ class Household(Agent):
             self.workers -= 1
             self.settlement.population -= 1
             self.model.totalPopulation -= 1
+            # print("Down", self.model.totalPopulation)
 
             # Check if there are still workers in the Household
             if self.workers <= 0:
@@ -300,10 +300,12 @@ class Household(Agent):
 
         populateChance = random.uniform(0,1)
 
-        if (self.model.totalPopulation <= (startingPopulation*((1 + self.model.popGrowthRate/100)**self.model.currentTime)) and (populateChance > 0.5)):
+        if (self.model.totalPopulation <= (startingPopulation * ((1 + (self.model.popGrowthRate/100)) ** self.model.currentTime)) 
+            and (populateChance > 0.5)):
             self.workers += 1
             self.settlement.population += 1
-            self.model.totalPopulation += 1   
+            self.model.totalPopulation += 1
+            # print("Up", self.model.totalPopulation)
 
     def genChangeover(self):
         """
@@ -371,22 +373,23 @@ class Household(Agent):
             # If statement to check if a field has been harvested or not, and set render values for the farms
             if (self.fields[i].harvested == True):
                 self.fields[i].yearsFallow = 0
-                self.farms[self.fields[i].pos].farmed = True
+                if self.fields[i].pos in self.farms:
+                    self.farms[self.fields[i].pos].farmed = True
             else:
                 self.fields[i].yearsFallow += 1
-                self.farms[self.fields[i].pos].farmed = False
+                if self.fields[i].pos in self.farms:
+                    self.farms[self.fields[i].pos].farmed = False
             
             # If statement to add fallowlimit exceeding fields to an array of fields to delete
-            if (self.fields[i].yearsFallow >= self.model.fallowLimit): 
+            if (self.fields[i].yearsFallow >= self.model.fallowLimit):
+                self.model.grid.remove_agent(self.farms[self.fields[i].pos])# Remove the farm from the map
+                del self.farms[self.fields[i].pos] # Remove the farm from list 
                 self.fields[i].owned = False
-                self.fields[i].field = False
                 self.fieldsOwned -= 1
                 toDel.append(i - len(toDel)) # Subtract to account for array shrinkage as deletion happens
 
         # For loop to remove all fallowlimit exceded fields from the Households ownership
         for i in toDel:
-            self.model.grid.remove_agent(self.farms[self.fields[i].pos])# Remove the farm from the map
-            del self.farms[self.fields[i].pos] # Remove the farm from list
             del self.fields[i] # Delete the field
 
 
@@ -420,9 +423,6 @@ class Household(Agent):
         self.fieldChangeover()
         self.genChangeover()
         self.populationShift()
-        # self.updateFarms()
-        # for farm in self.farms.items():
-        #     print(farm, farm[1].farmed)
         # Update grain max for datacollector
         if self.grain > self.model.maxHouseholdGrain:
             self.model.maxHouseholdGrain = self.grain

@@ -104,7 +104,7 @@ grid = CanvasGrid(portrayal, 30, 30, 600, 600)
 # Chart elements for rendering
 totalGrainChart = ChartModule([{"Label": "Total Grain", "Color": "Black"}])
 totalPopulationChart = ChartModule([{"Label": "Total Population", "Color": "Black"},
-                                    {"Label": "Projected Hisorical Poulation", "Color": "Red"}])
+                                    {"Label": "Projected Hisorical Poulation (0.1% Growth)", "Color": "Red"}])
 settlementsHouseholdsChart = ChartModule([{"Label": "Settlements", "Color": "Blue"},
                                           {"Label": "Households", "Color": "Red"}])
 giniChart = ChartModule([{"Label": "Gini-Index", "Color": "Black"}])
@@ -136,7 +136,7 @@ model_params = {"height": 30,
                 "knowledgeRadius": UserSettableParameter('slider', 'Knowledge Radius', 20, 5, 40, 5),
                 "distanceCost": UserSettableParameter('slider', 'Distance Cost (in kg)', 10, 1, 15),
                 "fallowLimit": UserSettableParameter('slider', "Fallow Limit in Years", 4, 0, 10),
-                "popGrowthRate": UserSettableParameter('slider', 'Population Growth Rate (in %)', 0.010, 0.00, 0.050, 0.001),
+                "popGrowthRate": UserSettableParameter('slider', 'Population Growth Rate (in %)', 0.10, 0.00, 0.50, 0.001),
                 "fission": UserSettableParameter('checkbox', 'Allow Household Fission?', value=False),
                 "fissionChance": UserSettableParameter('slider', 'Minimum Fission Chance', 0.7, 0.5, 0.9, 0.1),
                 "rental": UserSettableParameter('checkbox', 'Allow Land Rental?', value=True),
