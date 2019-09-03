@@ -310,7 +310,7 @@ class Household(Agent):
     def genChangeover(self):
         """
         This method is to simulate what may happen when a relative or child takes over the household and thus allows
-        for the level competency and ambition of a household to change as would be expected when an new person is in control.
+        for the level of competency and ambition of a household to change as would be expected when an new person is in control.
         """
         # Decreases the generational countdown 
         self.generationCountdown -= 1
