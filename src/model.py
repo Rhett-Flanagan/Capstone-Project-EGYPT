@@ -265,7 +265,8 @@ class EgyptSim(Model):
              "Number of households with < 33% of wealthiest grain holding": lowerThirdGrainHoldings,
              "Number of households with 33 - 66%  of wealthiest grain holding": middleThirdGrainHoldings,
              "Number of households with > 66% of wealthiest grain holding": upperThirdGrainHoldings 
-            })
+            },
+            tables = tables)
 
         self.setup()
         self.running = True
