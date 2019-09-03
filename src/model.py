@@ -11,6 +11,7 @@ from src.schedule import EgyptSchedule
 
 # Data collctor methods
 def gini(model):
+    """Calculates the Gini-Index of the model"""
     # Sorting functor
     def wealth(agent):
         return agent.grain
@@ -30,6 +31,7 @@ def gini(model):
         return 0
 
 def minSetPop(model):
+    """Finds the minimum settlement population in the model"""
     settlements = model.schedule.get_breed(Settlement)
     minPop = float("inf") # Workaround of removal of sys.maxint
     for settlement in settlements:
@@ -38,6 +40,7 @@ def minSetPop(model):
     return minPop
 
 def maxSetPop(model):
+    """Finds the maximum settlement population in the model"""
     settlements = model.schedule.get_breed(Settlement)
     maxPop = 0
     for settlement in settlements:
@@ -46,6 +49,7 @@ def maxSetPop(model):
     return maxPop
 
 def meanSetPop(model):
+    """Finds the mean settlement population in the model"""
     settlements = model.schedule.get_breed(Settlement)
     meanPop = 0
     for settlement in settlements:
@@ -56,6 +60,7 @@ def meanSetPop(model):
         return 0
 
 def minHWealth(model):
+    """Finds the minimum household wealth in the model"""
     households = model.schedule.get_breed(Household)
     minWealth = float("inf") # Workaround of removal of sys.maxint
     for household in households:
@@ -64,6 +69,7 @@ def minHWealth(model):
     return minWealth
 
 def maxHWealth(model):
+    """Finds the maximum household wealth in the model"""
     households = model.schedule.get_breed(Household)
     maxWealth = 0
     for household in households:
@@ -72,6 +78,7 @@ def maxHWealth(model):
     return maxWealth
 
 def meanHWealth(model):
+    """Finds the mean household wealth in the model"""
     households = model.schedule.get_breed(Household)
     meanWealth = 0
     for household in households:
@@ -83,6 +90,7 @@ def meanHWealth(model):
 
 
 def lowerThridGrainHoldings(model):
+    """Counts how many households are below 1/3 of the maximum grain held by a household"""
     households = model.schedule.get_breed(Household)
     count = 0
     for household in households:
@@ -91,6 +99,7 @@ def lowerThridGrainHoldings(model):
     return count
 
 def middleThridGrainHoldings(model):
+    """Counts how many households are between 1/3 and 2/3 of the maximum grain held by a household"""
     households = model.schedule.get_breed(Household)
     count = 0
     for household in households:
@@ -99,6 +108,7 @@ def middleThridGrainHoldings(model):
     return count
 
 def upperThridGrainHoldings(model):
+    """Counts how many households are above 2/3 of the maximum grain held by a household"""
     households = model.schedule.get_breed(Household)
     count = 0
     for household in households:
@@ -145,9 +155,6 @@ class EgyptSim(Model):
     sigma = 0
     alpha = 0
     beta = 0
-
-    # Debug
-    verbose = False
 
     # Visualisation
     description = "A model simulating wealth growth and distribution in Ancient Egypt.\n\nThe model allows one to see how variables such as the flooding of the Nile, human character traits and random chance effect the acquisition and distribution of wealth."
@@ -206,7 +213,7 @@ class EgyptSim(Model):
         """
         super().__init__()
         # Set Parameters
-        # Map variables
+        # Map size
         self.height = height
         self.width = width
 
@@ -234,9 +241,17 @@ class EgyptSim(Model):
         self.projectedHistoricalPopulation = self.startingPopulation
         self.maxHouseholdGrain = 0
 
+        # Scheduler and Grid
         self.schedule = EgyptSchedule(self)
         self.grid = MultiGrid(self.height, self.width, torus=False)
-        # Overarching datacollector features, specific agent level features need to be done seperately because they are not propperly handled in the code
+
+        # Define specific tables for collection purposes
+        setlist = []
+        for i in range(self.startingSettlements):
+            setlist.append("s" + str(i + 1) + "_Population")
+        tables = {"Settlement Population": setlist}
+
+        # Datacollection
         self.datacollector = DataCollector(model_reporters = 
             {"Households": lambda m: m.schedule.get_breed_count(Household),
              "Settlements": lambda m: m.schedule.get_breed_count(Settlement),
@@ -253,15 +268,21 @@ class EgyptSim(Model):
              "Number of households with < 33% of wealthiest grain holding": lowerThridGrainHoldings,
              "Number of households with 33 - 66%  of wealthiest grain holding": middleThridGrainHoldings,
              "Number of households with > 66% of wealthiest grain holding": upperThridGrainHoldings},
-             agent_reporters = 
-             {"Settlement Population": lambda a: a.population if type(a) is Settlement else None})
+             tables = tables)
+             #agent_reporters = 
+             #{"Settlement Population": lambda a: a.population if type(a) is Settlement else None})
 
         self.setup()
         self.running = True
+        self.collectTableData()
         self.datacollector.collect(self)
         #print(self.datacollector.get_agent_vars_dataframe())
 
-
+    def collectTableData(self):
+        setPops = {}
+        for s in self.schedule.get_breed(Settlement):
+                setPops[s.unique_id + "_Population"] = s.population
+        self.datacollector.add_table_row("Settlement Population", setPops, True)
 
     def setupMapBase(self):
         """
@@ -342,6 +363,9 @@ class EgyptSim(Model):
         self.schedule.step()
         self.projectedHistoricalPopulation = round(self.startingPopulation * ((1.001) ** self.currentTime))
         self.datacollector.collect(self)
+        # Add settlement data to table 
+        self.collectTableData()
+        #print(self.datacollector.get_table_dataframe("Settlement Population"))
         # Cease running once time limit is reached or everyone is dead
         if self.currentTime >= self.timeSpan or self.totalPopulation == 0: 
             self.running = False

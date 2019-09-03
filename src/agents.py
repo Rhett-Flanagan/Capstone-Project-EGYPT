@@ -63,7 +63,7 @@ class Field(Tile):
     avf = 0.0
     yearsFallow = 0
 
-    def __init__(self, unique_id: int, model, pos: tuple = (0, 0), fertility: float = 0.0):
+    def __init__(self, unique_id, model, pos: tuple = (0, 0), fertility: float = 0.0):
         '''
         Create a new Field
 
@@ -105,7 +105,7 @@ class Settlement(Tile):
     noHouseholds = 0
     color = "#000000"
 
-    def __init__(self, unique_id: int, model, pos: tuple, population: int, noHouseholds: int, uid, color: str):
+    def __init__(self, unique_id, model, pos: tuple, population: int, noHouseholds: int, uid, color: str):
         '''
         Create a new Settlement
 
@@ -120,13 +120,18 @@ class Settlement(Tile):
         self.noHouseholds = noHouseholds
         self.color = color
 
-    def fission(self):
-        # TODO
-        pass
 
     def step(self):
-        self.fission()
+        """ Actions to take on a step"""
+        # Check if settlement is dead
         if self.population == 0:
+            local = self.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=1)
+            # Mark the land as available for farming. River included for an extension that includes fishing.
+            # Can be extended by having a timer where the area is not able to be cultivated.
+            for a in local:
+                if type(a) is Field or type(a) is River:
+                    a.settlementTerritory = False
+            # Remove from consideration
             self.model.schedule.remove(self)
             self.model.grid.remove_agent(self)
 
@@ -150,7 +155,7 @@ class Household(Agent):
     fields = []
     farms = {} # Dict of farms for visualisation purposes
 
-    def __init__(self, unique_id: int, model, settlement: Settlement, pos: tuple, grain: int,
+    def __init__(self, unique_id, model, settlement: Settlement, pos: tuple, grain: int,
                  workers: int, ambition: float, competency: float,
                  generationCountdown: int):
         '''

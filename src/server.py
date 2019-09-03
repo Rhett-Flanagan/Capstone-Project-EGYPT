@@ -1,9 +1,11 @@
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import CanvasGrid, ChartModule
 from mesa.visualization.UserParam import UserSettableParameter
+from src.charts import TableChartModule
 
 from src.agents import River, Field, Settlement, Farm
 from src.model import EgyptSim
+
 
 max = 1.36  # Max Fertility Value = The man, the myth, the legendary Rhett worked this out using really slow and manual machine learning
 
@@ -42,7 +44,6 @@ def portrayal(agent):
     elif type(agent) is Settlement:
         portrayal["Shape"] = "circle"
         portrayal["Color"] = agent.color
-        #portrayal["text"] = (agent.uid + str(agent.population)) # Cant make this transparent so it only appears on tooltip
         portrayal["Filled"] = "true"
         portrayal["Layer"] = 1
         # Set size according to population
@@ -63,11 +64,6 @@ def portrayal(agent):
             portrayal["Shape"] = "rect"
             portrayal["w"] = 0.25
             portrayal["h"] = 0.25
-            # portrayal["Shape"] = "circle"
-            # portrayal["r"] = 0.25
-            # portrayal["Shape"] = "rect"
-            # portrayal["w"] = 0.5
-            # portrayal["h"] = 0.5
         portrayal["Color"] = agent.color
         portrayal["Layer"] = 1
         portrayal["Filled"] = "true"
@@ -118,9 +114,20 @@ grainHoldingChart = ChartModule([{"Label": "Number of households with < 33% of w
                                  {"Label": "Number of households with 33 - 66%  of wealthiest grain holding", "Color": "Blue"},
                                  {"Label": "Number of households with > 66% of wealthiest grain holding", "Color": "Purple"}])
 
-elements = [grid, # Grid
-            totalGrainChart, totalPopulationChart, settlementsHouseholdsChart, giniChart, minMaxMeanSetPopChart,
-            minMaxMeanHPopChart, grainHoldingChart]
+sets = []
+for sid, col in SETDICT.items():
+    sets.append({"Label": (sid + "_Population"), "Color": col})
+    
+setPopChart = TableChartModule(sets, "Settlement Population")#, "Settlement Population", "Time", "Population")
+
+
+elements = [# Grid Element
+            grid, 
+            # Model Chart Elements
+            totalGrainChart, totalPopulationChart, settlementsHouseholdsChart, giniChart,
+            minMaxMeanSetPopChart, minMaxMeanHPopChart, grainHoldingChart,
+            # Table Chart Elements
+            setPopChart]
 
 model_params = {"height": 30, 
                 "width": 30,
