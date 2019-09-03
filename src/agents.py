@@ -409,7 +409,12 @@ class Household(Agent):
                     household = Household(uid, self.model, self.settlement, self.pos, 1100, # Grain for 5 workers and 1 field
                                         5, ambition, competency, genCount)
                     self.model.schedule.add(household) # Add to scheduler
-                
+                    self.population -= 5
+                    self.grain -= 5
+
+    def migration(self):
+        """Causes the household to migrate if migration is allowed and
+           there is too much competition in the home settlment"""
 
     def step(self):
         """
