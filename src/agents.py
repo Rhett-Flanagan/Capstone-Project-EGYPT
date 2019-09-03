@@ -395,6 +395,21 @@ class Household(Agent):
         for i in toDel:
             del self.fields[i] # Delete the field
 
+    def fission(self):
+        """ Performs household fission if enabled"""
+        if self.model.fission:
+            # If chance is met
+            if self.model.fissionChance < np.random.uniform(0,1):
+                # If requirements are met
+                if self.workers >= 15 and self.grain > (3 * self.workers * (164)):
+                    uid = "h" + str(self.model.schedule.get_breed_count(Household) + 1)
+                    ambition =  np.random.uniform(self.model.minAmbition, 1)
+                    competency = np.random.uniform(self.model.minCompetency, 1)
+                    genCount = random.randrange(5) + 10
+                    household = Household(uid, self.model, self.settlement, self.pos, 1100, # Grain for 5 workers and 1 field
+                                        5, ambition, competency, genCount)
+                    self.model.schedule.add(household) # Add to scheduler
+                
 
     def step(self):
         """
@@ -426,9 +441,12 @@ class Household(Agent):
         self.fieldChangeover()
         self.genChangeover()
         self.populationShift()
+        self.fission()
         # Update grain max for datacollector
         if self.grain > self.model.maxHouseholdGrain:
             self.model.maxHouseholdGrain = self.grain
+
+    
 
 class Farm(Tile):
     """Farm stub object for visualsiation purposes"""

@@ -242,13 +242,13 @@ class EgyptSim(Model):
         self.schedule = EgyptSchedule(self)
         self.grid = MultiGrid(self.height, self.width, torus=False)
 
-        # Define specific tables for collection purposes
+        # Define specific tables for data collection purposes
         setlist = []
         for i in range(self.startingSettlements):
             setlist.append("s" + str(i + 1) + "_Population")
         tables = {"Settlement Population": setlist}
 
-        # Datacollection
+        # Data collection
         self.datacollector = DataCollector(model_reporters = 
             {"Households": lambda m: m.schedule.get_breed_count(Household),
              "Settlements": lambda m: m.schedule.get_breed_count(Settlement),
@@ -301,6 +301,7 @@ class EgyptSim(Model):
         """
         Add settlements and households to the simulation
         """
+        h = 1
         for i in range(self.startingSettlements):
             # Loop untill a suitable location is found
             while True:
@@ -334,14 +335,15 @@ class EgyptSim(Model):
 
             # Add households for the settlement to the scheduler
             for j in range(self.startingHouseholds):
-                huid = uid + "h" + str(j + 1) # Use a custom id for the datacollector
+                huid = "h" + str(h) # Use a custom id for the datacollector
                 ambition =  np.random.uniform(self.minAmbition, 1)
                 competency = np.random.uniform(self.minCompetency, 1)
                 genCount = self.random.randrange(5) + 10
-                household = Household(self.next_id(), self, settlement, (x, y), self.startingGrain,
+                household = Household(huid, self, settlement, (x, y), self.startingGrain,
                                       self.startingHouseholdSize, ambition, competency, genCount)
                 # ! Dont add household to grid, is redundant
                 self.schedule.add(household)
+                h += 1
             # Add settlement to the scheduler
             self.schedule.add(settlement)
 
