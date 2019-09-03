@@ -272,12 +272,11 @@ class EgyptSim(Model):
         self.running = True
         self.collectTableData()
         self.datacollector.collect(self)
-        #print(self.datacollector.get_agent_vars_dataframe())
 
     def collectTableData(self):
         setPops = {}
         for s in self.schedule.get_breed(Settlement):
-                setPops[s.unique_id + "_Population"] = s.population
+            setPops[s.unique_id + "_Population"] = s.population
         self.datacollector.add_table_row("Settlement Population", setPops, True)
 
     def setupMapBase(self):
@@ -331,7 +330,6 @@ class EgyptSim(Model):
             local = self.grid.get_neighbors((x, y), moore=True, include_center=True, radius=1)
             for a in local:
                 a.settlementTerritory = True
-                # // print(type(a), a.pos, a.settlementTerritory, sep = "\t")
 
             # Add households for the settlement to the scheduler
             for j in range(self.startingHouseholds):
@@ -363,7 +361,6 @@ class EgyptSim(Model):
         self.datacollector.collect(self)
         # Add settlement data to table 
         self.collectTableData()
-        #print(self.datacollector.get_table_dataframe("Settlement Population"))
         # Cease running once time limit is reached or everyone is dead
         if self.currentTime >= self.timeSpan or self.totalPopulation == 0: 
             self.running = False

@@ -277,7 +277,6 @@ class Household(Agent):
             self.workers -= 1
             self.settlement.population -= 1
             self.model.totalPopulation -= 1
-            # print("Down", self.model.totalPopulation)
 
             # Check if there are still workers in the Household
             if self.workers <= 0:
@@ -308,8 +307,6 @@ class Household(Agent):
             self.workers += 1
             self.settlement.population += 1
             self.model.totalPopulation += 1
-            # print("Up", self.model.totalPopulation)
-
     def genChangeover(self):
         """
         This method is to simulate what may happen when a relative or child takes over the household and thus allows
@@ -397,6 +394,7 @@ class Household(Agent):
 
     def fission(self):
         """ Performs household fission if enabled"""
+        # If allowed
         if self.model.fission:
             # If chance is met
             if self.model.fissionChance < np.random.uniform(0,1):
@@ -409,12 +407,8 @@ class Household(Agent):
                     household = Household(uid, self.model, self.settlement, self.pos, 1100, # Grain for 5 workers and 1 field
                                         5, ambition, competency, genCount)
                     self.model.schedule.add(household) # Add to scheduler
-                    self.population -= 5
+                    self.workers -= 5
                     self.grain -= 5
-
-    def migration(self):
-        """Causes the household to migrate if migration is allowed and
-           there is too much competition in the home settlment"""
 
     def step(self):
         """
