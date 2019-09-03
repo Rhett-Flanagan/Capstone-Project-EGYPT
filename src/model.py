@@ -89,8 +89,7 @@ def meanHWealth(model):
         return 0
 
 
-def lowerThridGrainHoldings(model):
-    """Counts how many households are below 1/3 of the maximum grain held by a household"""
+def lowerThirdGrainHoldings(model):
     households = model.schedule.get_breed(Household)
     count = 0
     for household in households:
@@ -98,8 +97,7 @@ def lowerThridGrainHoldings(model):
             count += 1
     return count
 
-def middleThridGrainHoldings(model):
-    """Counts how many households are between 1/3 and 2/3 of the maximum grain held by a household"""
+def middleThirdGrainHoldings(model):
     households = model.schedule.get_breed(Household)
     count = 0
     for household in households:
@@ -107,8 +105,7 @@ def middleThridGrainHoldings(model):
             count += 1
     return count
 
-def upperThridGrainHoldings(model):
-    """Counts how many households are above 2/3 of the maximum grain held by a household"""
+def upperThirdGrainHoldings(model):
     households = model.schedule.get_breed(Household)
     count = 0
     for household in households:
@@ -265,12 +262,10 @@ class EgyptSim(Model):
              "Maximum Household Wealth": maxHWealth,
              "Minimum Household Wealth": minHWealth,
              "Mean Household Wealth" : meanHWealth,
-             "Number of households with < 33% of wealthiest grain holding": lowerThridGrainHoldings,
-             "Number of households with 33 - 66%  of wealthiest grain holding": middleThridGrainHoldings,
-             "Number of households with > 66% of wealthiest grain holding": upperThridGrainHoldings},
-             tables = tables)
-             #agent_reporters = 
-             #{"Settlement Population": lambda a: a.population if type(a) is Settlement else None})
+             "Number of households with < 33% of wealthiest grain holding": lowerThirdGrainHoldings,
+             "Number of households with 33 - 66%  of wealthiest grain holding": middleThirdGrainHoldings,
+             "Number of households with > 66% of wealthiest grain holding": upperThirdGrainHoldings 
+            })
 
         self.setup()
         self.running = True
@@ -341,8 +336,8 @@ class EgyptSim(Model):
                 huid = uid + "h" + str(j + 1) # Use a custom id for the datacollector
                 ambition =  np.random.uniform(self.minAmbition, 1)
                 competency = np.random.uniform(self.minCompetency, 1)
-                genCount = self.random.randrange(5)
-                household = Household(huid, self, settlement, (x, y), self.startingGrain,
+                genCount = self.random.randrange(5) + 10
+                household = Household(self.next_id(), self, settlement, (x, y), self.startingGrain,
                                       self.startingHouseholdSize, ambition, competency, genCount)
                 # ! Dont add household to grid, is redundant
                 self.schedule.add(household)
