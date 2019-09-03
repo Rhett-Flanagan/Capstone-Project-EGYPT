@@ -103,7 +103,6 @@ class Settlement(Tile):
     # Variable declarations for non python programmer sanity
     population = 0
     noHouseholds = 0
-    uid = ""
     color = "#000000"
 
     def __init__(self, unique_id: int, model, pos: tuple, population: int, noHouseholds: int, uid, color: str):
@@ -119,7 +118,6 @@ class Settlement(Tile):
         super().__init__(unique_id, model, pos)
         self.population = population
         self.noHouseholds = noHouseholds
-        self.uid = uid
         self.color = color
 
     def fission(self):

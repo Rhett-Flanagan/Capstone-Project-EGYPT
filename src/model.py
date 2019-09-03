@@ -252,12 +252,14 @@ class EgyptSim(Model):
              "Mean Household Wealth" : meanHWealth,
              "Number of households with < 33% of wealthiest grain holding": lowerThridGrainHoldings,
              "Number of households with 33 - 66%  of wealthiest grain holding": middleThridGrainHoldings,
-             "Number of households with > 66% of wealthiest grain holding": upperThridGrainHoldings 
-            })
+             "Number of households with > 66% of wealthiest grain holding": upperThridGrainHoldings},
+             agent_reporters = 
+             {"Settlement Population": lambda a: a.population if type(a) is Settlement else None})
 
         self.setup()
         self.running = True
         self.datacollector.collect(self)
+        #print(self.datacollector.get_agent_vars_dataframe())
 
 
 
@@ -268,11 +270,13 @@ class EgyptSim(Model):
         for agent, x, y in self.grid.coord_iter():
             # If on left edge, make a river
             if x == 0:
-                river = River(self.next_id(), self, (x, y))
+                uid = "r" + str(x) + "|" + str(y)
+                river = River(uid, self, (x, y))
                 self.grid.place_agent(river, (x, y))
             # Otherwise make a field
             else:
-                field = Field(self.next_id(), self, (x, y), 0.0)
+                uid = "f" + str(x) + "|" + str(y)
+                field = Field(uid, self, (x, y), 0.0)
                 self.grid.place_agent(field, (x, y))
                 self.schedule.add(field)
 
@@ -301,8 +305,8 @@ class EgyptSim(Model):
 
             # Add settlement to the grid
             population = self.startingHouseholds * self.startingHouseholdSize
-            uid = "s" + str(i + 1)
-            settlement = Settlement(self.next_id(), self, (x, y), population, self.startingHouseholds, uid, self.SETDICT[uid])
+            uid = "s" + str(i + 1) # Use a custom id for the datacollector
+            settlement = Settlement(uid, self, (x, y), population, self.startingHouseholds, uid, self.SETDICT[uid])
             self.grid.place_agent(settlement, (x, y))
 
             # Set the surrounding fields as territory
@@ -313,10 +317,11 @@ class EgyptSim(Model):
 
             # Add households for the settlement to the scheduler
             for j in range(self.startingHouseholds):
+                huid = uid + "h" + str(j + 1) # Use a custom id for the datacollector
                 ambition =  np.random.uniform(self.minAmbition, 1)
                 competency = np.random.uniform(self.minCompetency, 1)
                 genCount = self.random.randrange(5)
-                household = Household(self.next_id(), self, settlement, (x, y), self.startingGrain,
+                household = Household(huid, self, settlement, (x, y), self.startingGrain,
                                       self.startingHouseholdSize, ambition, competency, genCount)
                 # ! Dont add household to grid, is redundant
                 self.schedule.add(household)
@@ -340,7 +345,7 @@ class EgyptSim(Model):
         # Cease running once time limit is reached or everyone is dead
         if self.currentTime >= self.timeSpan or self.totalPopulation == 0: 
             self.running = False
-
+ 
     def setupFlood(self):
         """
         Sets up common variables used for the flood method in Fields
