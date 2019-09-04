@@ -149,6 +149,6 @@ model_params = {"height": 30,
                 "rental": UserSettableParameter('checkbox', 'Allow Land Rental?', value=True),
                 "rentalRate": UserSettableParameter('slider', 'Land Rental Rate', 0.5, 0.3, 0.6, 0.05)}
 
-server = ModularServer(EgyptSim, elements, "Egypt Sim", model_params)
+server = ModularServer(EgyptSim, elements, "Farmers to Pharaohs Simulation", model_params)
 
 server.port = 8521

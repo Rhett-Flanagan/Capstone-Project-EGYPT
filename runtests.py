@@ -1,6 +1,6 @@
 import unittest
 
-import src.testModel as testModel
+import src.tests as tests
 
 runner = unittest.TextTestRunner()
-runner.run(testModel.suite())
+runner.run(tests.suite())

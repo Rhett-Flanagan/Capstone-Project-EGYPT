@@ -125,7 +125,7 @@ class Settlement(Tile):
         """ Actions to take on a step"""
         # Check if settlement is dead
         if self.population == 0:
-            local = self.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=1)
+            local = self.model.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=1)
             # Mark the land as available for farming. River included for an extension that includes fishing.
             # Can be extended by having a timer where the area is not able to be cultivated.
             for a in local:
@@ -281,8 +281,8 @@ class Household(Agent):
             # Check if there are still workers in the Household
             if self.workers <= 0:
                 # Removes ownership of all fields
-                for i in self.fields:
-                    i.owned = False
+                for f in self.fields:
+                    f.owned = False
                 # Decrements the amount of households and removes this household from the simulation
                 self.settlement.noHouseholds -= 1
                 self.model.schedule.remove(self)

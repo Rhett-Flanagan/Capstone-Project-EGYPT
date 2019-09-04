@@ -23,9 +23,9 @@ def gini(model):
     for agent in agents:
         x.append(agent.grain)
     N = model.schedule.get_breed_count(Household)
-    B = sum(xi * (N - i) for i, xi in enumerate(x)) / (N * sum(x))
     # Avoid divide by 0 errors
     if N != 0:
+        B = sum(xi * (N - i) for i, xi in enumerate(x)) / (N * sum(x))
         return round((1 + (1 / N) - 2 * B), 2)
     else:
         return 0
@@ -93,7 +93,7 @@ def lowerThirdGrainHoldings(model):
     households = model.schedule.get_breed(Household)
     count = 0
     for household in households:
-        if household.grain < (model.maxHouseholdGrain / 3):
+        if household.grain <= (model.maxHouseholdGrain / 3):
             count += 1
     return count
 
@@ -101,7 +101,7 @@ def middleThirdGrainHoldings(model):
     households = model.schedule.get_breed(Household)
     count = 0
     for household in households:
-        if ((household.grain > (model.maxHouseholdGrain / 3)) and (household.grain < ( 2 * model.maxHouseholdGrain / 3))):
+        if ((household.grain > (model.maxHouseholdGrain / 3)) and (household.grain <= ( 2 * model.maxHouseholdGrain / 3))):
             count += 1
     return count
 
@@ -141,11 +141,11 @@ class EgyptSim(Model):
     fissionChance = 0.7
     rental = False
     rentalRate = 0.5
-    totalGrain = 0
-    totalPopulation = 0
-    startingPopulation = 0
-    projectedHistoricalPopulation = 0
-    maxHouseholdGrain = 0
+    totalPopulation = startingSettlements * startingHouseholds * startingHouseholdSize
+    totalGrain = startingGrain * startingHouseholds
+    startingPopulation = totalPopulation
+    projectedHistoricalPopulation = totalPopulation
+    maxHouseholdGrain = startingGrain
 
     # Step variables
     mu = 0
@@ -236,7 +236,7 @@ class EgyptSim(Model):
         self.totalPopulation = startingSettlements * startingHouseholds * startingHouseholdSize
         self.startingPopulation = self.totalPopulation
         self.projectedHistoricalPopulation = self.startingPopulation
-        self.maxHouseholdGrain = 0
+        self.maxHouseholdGrain = startingGrain
 
         # Scheduler and Grid
         self.schedule = EgyptSchedule(self)
