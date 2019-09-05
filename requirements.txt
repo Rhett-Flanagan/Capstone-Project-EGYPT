@@ -1,3 +1,5 @@
 mesa
 pandas
+jupyter
+matplotlib
 numpy

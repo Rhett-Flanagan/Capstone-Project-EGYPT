@@ -90,6 +90,7 @@ def meanHWealth(model):
 
 
 def lowerThirdGrainHoldings(model):
+    """ Determines the number of households that hold below 33% of the highest grain total"""
     households = model.schedule.get_breed(Household)
     count = 0
     for household in households:
@@ -98,6 +99,7 @@ def lowerThirdGrainHoldings(model):
     return count
 
 def middleThirdGrainHoldings(model):
+    """ Determines the number of households that hold between 33% and 66% of the highest grain total"""
     households = model.schedule.get_breed(Household)
     count = 0
     for household in households:
@@ -106,6 +108,7 @@ def middleThirdGrainHoldings(model):
     return count
 
 def upperThirdGrainHoldings(model):
+    """ Determines the number of households that hold above 66% of the highest grain total"""
     households = model.schedule.get_breed(Household)
     count = 0
     for household in households:
