@@ -18,7 +18,6 @@ class Tile(Agent):
 
     # Variable declarations for non python programmer sanity
     pos = (0, 0)
-    fertility = 0.0
     settlementTerritory = False
     owned = False
 
@@ -55,13 +54,14 @@ class River(Tile):
 
 class Field(Tile):
     """
-    Fields agent, can be farmed by households and have changing fertility values and owners
-    
+    Field agent, can be farmed by households and have changing fertility values and owners
     """
 
     # Variable declarations for non python programmer sanity
+    fertility = 0.0
     avf = 0.0
     yearsFallow = 0
+    harvested = False
 
     def __init__(self, unique_id, model, pos: tuple = (0, 0), fertility: float = 0.0):
         '''
@@ -76,6 +76,7 @@ class Field(Tile):
         self.fertility = fertility
         self.avf = fertility
         self.yearsFallow = 0
+        self.harvested = False
 
     def flood(self):
         """
@@ -150,8 +151,6 @@ class Household(Agent):
     competency = 0.0
     workersWorked = 0
     generationCountdown = 0
-    fieldsOwned = 0
-    fieldsHarvested = 0
     fields = []
     farms = {} # Dict of farms for visualisation purposes
 
@@ -176,8 +175,6 @@ class Household(Agent):
         self.ambition = ambition
         self.competency = competency
         self.generationCountdown = generationCountdown
-        self.fieldsOwned = 0
-        self.fieldsHarvested = 0
         self.fields = []
         # For visualisation
         self.farms = {}
@@ -188,14 +185,14 @@ class Household(Agent):
         The decision to claim is a function the productivity of the field compared to existing fields and ambition.
         """
         chance = np.random.uniform(0, 1)
-        if (chance > self.ambition and self.workers > self.fieldsOwned) or (self.fieldsOwned <= 1):
+        if (chance > self.ambition and self.workers > len(self.fields)) or (len(self.fields) <= 1):
             bestFertility = 0
             bestField = None
 
             # Iterate through fields on the grid
             neighbours = self.model.grid.get_neighbors(pos = self.pos, moore = False, include_center =  False, radius = self.model.knowledgeRadius)
             for a in neighbours:
-                if (a.fertility > bestFertility and type(a).__name__ == "Field"
+                if (type(a).__name__ == "Field" and a.fertility > bestFertility 
                         and a.owned == False and a.settlementTerritory == False):
                     bestFertility = a.fertility
                     bestField = a
@@ -208,7 +205,6 @@ class Household(Agent):
                     bestField.owned = True
                     bestField.harvested = False
                     bestField.yearsFallow = 0
-                    self.fieldsOwned += 1
                     self.fields.append(bestField)
 
                     # Make farm for visualisation
@@ -217,6 +213,7 @@ class Household(Agent):
                     self.farms[bestField.pos] = farm
 
     def farm(self, fields):
+        """ Farms fields that the Household owns ifthe chance is met"""
         totalHarvest = 0
         maxYield = 2475
         loops = ((self.workers - self.workersWorked)// 2) # Protection against loop breaking with changes
@@ -228,16 +225,15 @@ class Household(Agent):
         fields.sort(key = fert) # Sort fields on fertility so save loop iterations
 
         for i in range(loops):
-            # Determine best field
-            # bestHarvest = 0
-            # bestField = None
             # Optimised looping through fields from NetLogo, saves several loop cycles and calculations 
             for f in fields:
+                # If the field is not harvested, setup for harvesting
                 if not f.harvested:
                     harvest = (int(f.fertility * maxYield * self.competency) - 
                               (((abs(self.pos[0]) - f.pos[0]) + 
                                  abs(self.pos[1] - f.pos[1])) * 
                                  self.model.distanceCost))
+                    # If the chance is met, harvest the field
                     chance = np.random.uniform(0, 1)
                     if (((self.grain > (self.workers * 160)) or (chance < self.ambition * self.competency)) 
                         and (f is not None)):
@@ -245,7 +241,7 @@ class Household(Agent):
                         totalHarvest += harvest - 300  # -300 for planting
                         self.workersWorked += 2
                     break # Stop looping through fields after choosing the best and taking the farm chance
-        # Complete farming    
+        # Complete farming by updating grain totals
         self.grain += totalHarvest
         self.model.totalGrain += totalHarvest
 
@@ -302,11 +298,13 @@ class Household(Agent):
 
         populateChance = random.uniform(0,1)
 
+        # If the household can grow, inrease population.
         if (self.model.totalPopulation <= (startingPopulation * ((1 + (self.model.popGrowthRate/100)) ** self.model.currentTime)) 
             and (populateChance > 0.5)):
             self.workers += 1
             self.settlement.population += 1
             self.model.totalPopulation += 1
+
     def genChangeover(self):
         """
         This method is to simulate what may happen when a relative or child takes over the household and thus allows
@@ -333,11 +331,10 @@ class Household(Agent):
             
                 newAmbition = self.ambition + ambitionChange
 
+                # sets the new ambition and breaks the loop
                 if((newAmbition > 1) or (newAmbition < self.model.minAmbition)):
+                    self.ambition = newAmbition
                     break
-            
-            # sets the new ambition
-            self.ambition = newAmbition
 
             # continues to recalculate the new competency value until it is less than one and greater than the model's minimum competency
             while(True): 
@@ -352,12 +349,11 @@ class Household(Agent):
             
                 newComp = self.competency + competencyChange
 
+                # sets the new competency and breaks the loop
                 if(newComp > 1 or newComp < self.model.minCompetency):
+                    self.competency = newComp
                     break
            
-            # sets the new competency
-            self.competency = newComp
-
     def fieldChangeover(self):
         """
         This method checks if an owned field has been harvested or not and tracks how many years it has been unharvested if not.
@@ -385,7 +381,6 @@ class Household(Agent):
                 self.model.grid.remove_agent(self.farms[self.fields[i].pos])# Remove the farm from the map
                 del self.farms[self.fields[i].pos] # Remove the farm from list 
                 self.fields[i].owned = False
-                self.fieldsOwned -= 1
                 toDel.append(i - len(toDel)) # Subtract to account for array shrinkage as deletion happens
 
         # For loop to remove all fallowlimit exceded fields from the Households ownership
@@ -398,7 +393,7 @@ class Household(Agent):
         if self.model.fission:
             # If chance is met
             if self.model.fissionChance < np.random.uniform(0,1):
-                # If requirements are met
+                # If requirements are met, create a splinter household
                 if self.workers >= 15 and self.grain > (3 * self.workers * (164)):
                     uid = "h" + str(self.model.schedule.get_breed_count(Household) + 1)
                     ambition =  np.random.uniform(self.model.minAmbition, 1)
@@ -415,9 +410,13 @@ class Household(Agent):
         The actions to take on a general step sequence
         """
         self.workersWorked = 0
-        self.fieldsHarvested = 0
         self.claimFields()
         self.farm(self.fields)
+        self.consumeGrain()
+        self.storageLoss()
+        self.fieldChangeover()
+        self.genChangeover()
+        self.populationShift()
 
     def stepFarm(self):
         """
@@ -425,8 +424,7 @@ class Household(Agent):
         """
         # Reset parameters
         self.workersWorked = 0
-        self.fieldsHarvested = 0
-
+        # Farm
         self.claimFields()
         self.farm(self.fields)
     
@@ -445,7 +443,6 @@ class Household(Agent):
         if self.grain > self.model.maxHouseholdGrain:
             self.model.maxHouseholdGrain = self.grain
 
-    
 
 class Farm(Tile):
     """Farm stub object for visualsiation purposes"""
