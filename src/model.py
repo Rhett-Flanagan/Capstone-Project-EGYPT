@@ -142,7 +142,7 @@ class EgyptSim(Model):
     popGrowthRate = 0.1
     fission = False
     fissionChance = 0.7
-    rental = False
+    rental = True
     rentalRate = 0.5
     totalPopulation = startingSettlements * startingHouseholds * startingHouseholdSize
     totalGrain = startingGrain * startingHouseholds
@@ -187,7 +187,7 @@ class EgyptSim(Model):
                  minAmbition: float = 0.1, minCompetency: float = 0.5,
                  generationalVariation: float = 0.9, knowledgeRadius: int = 20,
                  distanceCost: int = 10, fallowLimit: int = 4, popGrowthRate: float = 0.1,
-                 fission: bool = False, fissionChance: float = 0.7, rental: bool = False,
+                 fission: bool = False, fissionChance: float = 0.7, rental: bool = True,
                  rentalRate: float = 0.5):
         """
         Create a new EgyptSim model
@@ -217,10 +217,20 @@ class EgyptSim(Model):
         self.height = height
         self.width = width
 
+        # If the number of starting settlements is greater than the maximum reasonable number of households considering territory and farming area
+        # Considers that each household needs at least two field to survive at a minimum number of members, a Settlment needs 9 (territory) + 2 * households
+        # Tiles to survive
+        if startingSettlements > ((width - 1) * height) // (9 + (startingHouseholds * 2)):
+            if startingSettlements > 20:
+                self.startingSettlements = 20
+            else:
+                self.startingSettlements = ((height - 1) * width) // (9 + (startingHouseholds * 2))
+            print("Too many starting settlements to support the settlements and household, truncating to: ", self.startingSettlements)
+        else:
+            self.startingSettlements = startingSettlements
         # Simulation Variables
         self.timeSpan = timeSpan
         self.currentTime = 0
-        self.startingSettlements = startingSettlements
         self.startingHouseholds = startingHouseholds
         self.startingHouseholdSize = startingHouseholdSize
         self.startingGrain = startingGrain
@@ -243,7 +253,7 @@ class EgyptSim(Model):
 
         # Scheduler and Grid
         self.schedule = EgyptSchedule(self)
-        self.grid = MultiGrid(self.height, self.width, torus=False)
+        self.grid = MultiGrid(height = self.height, width = self.width, torus=False)
 
         # Define specific tables for data collection purposes
         setlist = []
