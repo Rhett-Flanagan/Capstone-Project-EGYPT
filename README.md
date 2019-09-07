@@ -15,13 +15,13 @@ The model requires Python 3 to be installed and will not function on Python 2
 
 To install the dependencies use pip and the requirements.txt in this directory. e.g.
 
-``` cmd
+``` 
     pip install -r requirements.txt
 ```
 
 or on Linux with Python 3 installed:
 
-``` terminal
+``` 
     pip3 install -r requirements.txt
 ```
 
@@ -29,13 +29,13 @@ or on Linux with Python 3 installed:
 
 To run the model run the run.py file in the root directory. e.g.
 
-``` cmd
+``` 
     python run.py
 ```
 
 or on Linux with Python 3 installed:
 
-``` terminal
+``` 
     python3 run.py
 ```
 
@@ -45,6 +45,6 @@ This will open the model server in the web browser through which the model can b
 
 To run the Jupyter notebook ensure that the requiremnts are installed and call:
 
-``` cmd
-    jupyter-notebook "Farmers to Pharaohs Notebook.ipynb"
+``` 
+    jupyter-notebook Farmers_to_Pharaohs_Notebook.ipynb
 ```
