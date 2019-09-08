@@ -212,7 +212,7 @@ class Household(Agent):
                     self.model.grid.place_agent(farm, bestField.pos)
                     self.farms[bestField.pos] = farm
 
-    def farm(self, fields):
+    def farm(self, fields, rental):
         """ Farms fields that the Household owns ifthe chance is met"""
         totalHarvest = 0
         maxYield = 2475
@@ -238,7 +238,10 @@ class Household(Agent):
                     if (((self.grain > (self.workers * 160)) or (chance < self.ambition * self.competency)) 
                         and (f is not None)):
                         f.harvested = True
-                        totalHarvest += harvest - 300  # -300 for planting
+                        if rental:
+                            totalHarvest += (harvest * (1 - (self.model.rentalRate))) - 300
+                        else:
+                            totalHarvest += harvest - 300  # -300 for planting
                         self.workersWorked += 2
                     break # Stop looping through fields after choosing the best and taking the farm chance
         # Complete farming by updating grain totals
@@ -254,7 +257,7 @@ class Household(Agent):
         # Checks to see if rental is allowed
         if(self.model.rental == True):
             # Gets a list of the households and sorts by ambition level
-            self.farm(fields)   
+            self.farm(fields, True)   
     
     def consumeGrain(self):
         """
@@ -411,7 +414,7 @@ class Household(Agent):
         """
         self.workersWorked = 0
         self.claimFields()
-        self.farm(self.fields)
+        self.farm(self.fields, False)
         self.consumeGrain()
         self.storageLoss()
         self.fieldChangeover()
@@ -426,7 +429,7 @@ class Household(Agent):
         self.workersWorked = 0
         # Farm
         self.claimFields()
-        self.farm(self.fields)
+        self.farm(self.fields, False)
     
     def stepRentConsumeChangeover(self, fields):
         """
