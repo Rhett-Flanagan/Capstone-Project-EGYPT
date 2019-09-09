@@ -1,5 +1,6 @@
 from collections import defaultdict
 from mesa.time import RandomActivation
+from src.agents import Household
 
 
 class EgyptSchedule(RandomActivation):
@@ -47,7 +48,7 @@ class EgyptSchedule(RandomActivation):
         """
         if by_breed:
             for agent_class in self.agents_by_breed:
-                if agent_class.__name__ == "Household": # Households need seperate treatment for ordering of changeover and rental after farming has occured
+                if agent_class is Household: # Households need seperate treatment for ordering of changeover and rental after farming has occured
                     self.step_households(agent_class)
                 else:
                     self.step_breed(agent_class)
