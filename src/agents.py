@@ -62,6 +62,7 @@ class Field(Tile):
     avf = 0.0
     yearsFallow = 0
     harvested = False
+    owner = None
 
     def __init__(self, unique_id, model, pos: tuple = (0, 0), fertility: float = 0.0):
         '''
@@ -77,6 +78,7 @@ class Field(Tile):
         self.avf = fertility
         self.yearsFallow = 0
         self.harvested = False
+        self.owner = None
 
     def flood(self):
         """
@@ -192,7 +194,7 @@ class Household(Agent):
             # Iterate through fields on the grid
             neighbours = self.model.grid.get_neighbors(pos = self.pos, moore = False, include_center =  False, radius = self.model.knowledgeRadius)
             for a in neighbours:
-                if (type(a).__name__ == "Field" and a.fertility > bestFertility 
+                if (type(a) is Field and a.fertility > bestFertility 
                         and a.owned == False and a.settlementTerritory == False):
                     bestFertility = a.fertility
                     bestField = a
@@ -200,9 +202,16 @@ class Household(Agent):
             # Make claim
             if bestField != None:
                 # Redundancy checks
-                if (type(bestField).__name__ == "Field" and bestField.owned == False
+                if (type(bestField) is Field and bestField.owned == False
                         and bestField.settlementTerritory == False):
+                    # Redundancy Removal of farms
+                    if (len(self.model.grid.get_cell_list_contents(bestField.pos)) != 1):
+                        for a in self.model.grid.get_cell_list_contents(bestField.pos):
+                            if type(a) is Farm:
+                                self.model.grid.remove_agent(a)
+
                     bestField.owned = True
+                    bestField.owner = self
                     bestField.harvested = False
                     bestField.yearsFallow = 0
                     self.fields.append(bestField)
@@ -218,11 +227,14 @@ class Household(Agent):
         maxYield = 2475
         loops = ((self.workers - self.workersWorked)// 2) # Protection against loop breaking with changes
         
-        # Sorting functor
+        # Sorting functor, sorts on fertility unless field is harvested
         def fert(field):
-            return field.fertility
+            if not field.harvested:
+                return field.fertility
+            else:
+                return -1
 
-        fields.sort(key = fert) # Sort fields on fertility so save loop iterations
+        fields.sort(key = fert, reverse = True) # Sort fields on fertility so save loop iterations
 
         for i in range(loops):
             # Optimised looping through fields from NetLogo, saves several loop cycles and calculations 
@@ -238,8 +250,10 @@ class Household(Agent):
                     if (((self.grain > (self.workers * 160)) or (chance < self.ambition * self.competency)) 
                         and (f is not None)):
                         f.harvested = True
-                        if rental:
-                            totalHarvest += (harvest * (1 - (self.model.rentalRate))) - 300
+                        if rental and f.owner is not None:
+                            totalHarvest += round((harvest * (1 - (self.model.rentalRate)))) - 300 #Renter farms and re-seeds
+                            f.owner.grain += round(harvest * (self.model.rentalRate)) # Renter pays rental fee
+                            self.model.totalGrain += round(harvest * (self.model.rentalRate)) # Add to total grain
                         else:
                             totalHarvest += harvest - 300  # -300 for planting
                         self.workersWorked += 2
@@ -383,10 +397,12 @@ class Household(Agent):
             if (self.fields[i].yearsFallow >= self.model.fallowLimit):
                 self.model.grid.remove_agent(self.farms[self.fields[i].pos])# Remove the farm from the map
                 del self.farms[self.fields[i].pos] # Remove the farm from list 
+                # Reset ownership
                 self.fields[i].owned = False
+                self.fields[i].owner = None
                 toDel.append(i - len(toDel)) # Subtract to account for array shrinkage as deletion happens
 
-        # For loop to remove all fallowlimit exceded fields from the Households ownership
+        # Remove all fallowlimit exceded fields from the Households ownership, does not remove agent
         for i in toDel:
             del self.fields[i] # Delete the field
 
